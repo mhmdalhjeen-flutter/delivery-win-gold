@@ -145,7 +145,7 @@ export default function TripDetails() {
       </section>
 
       <footer className="detail-actions">
-        {trip.status === 'ready_for_pickup' || trip.status === 'waiting_for_acceptance' ? (
+        {(trip.status === 'ready_for_pickup' || trip.status === 'waiting_for_acceptance') ? (
           <button
             type="button"
             className="btn-primary btn-primary--block"
@@ -154,7 +154,7 @@ export default function TripDetails() {
           >
             قبول الرحلة
           </button>
-        )}
+        ) : null}
 
         {['driver_assigned', 'accepted', 'collecting_orders'].includes(trip.status) && allCollected && (
           <button
