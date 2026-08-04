@@ -1,17 +1,19 @@
 import React from 'react';
 import { ChevronLeft, Package } from 'lucide-react';
-import { TRIP_STATUS_LABELS, TRIP_STATUS_COLORS, formatPrice, formatDate, PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS } from '../utils/tripHelpers';
+import { REQUEST_STATUS_LABELS, REQUEST_STATUS_COLORS, formatPrice, formatDate, PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS } from '../utils/tripHelpers';
 
 export default function TripCard({ trip, onClick }) {
   return (
     <button type="button" className="trip-card" onClick={onClick}>
       <div className="trip-card__head">
         <div>
-          <strong className="trip-card__customer">{trip.customerName || 'زبون'}</strong>
-          <p className="trip-card__phone" dir="ltr">{trip.customerPhone || '—'}</p>
+          <strong className="trip-card__customer">
+            {trip.orderNumber ? `#${trip.orderNumber}` : trip.customerName || 'زبون'}
+          </strong>
+          <p className="trip-card__phone">{trip.customerName || '—'} · <span dir="ltr">{trip.customerPhone || '—'}</span></p>
         </div>
-        <span className={`trip-card__status ${TRIP_STATUS_COLORS[trip.status] || ''}`}>
-          {trip.statusLabel || TRIP_STATUS_LABELS[trip.status]}
+        <span className={`trip-card__status ${REQUEST_STATUS_COLORS[trip.status] || ''}`}>
+          {trip.statusLabel || REQUEST_STATUS_LABELS[trip.status]}
         </span>
       </div>
 

@@ -15,7 +15,7 @@ export default function Dashboard() {
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: queryKeys.dashboardStats,
     queryFn: async () => {
-      const { data: res } = await api.get('/delivery/driver/dashboard/stats');
+      const { data: res } = await api.get('/delivery/company/dashboard/stats');
       return res;
     },
     refetchInterval: 30_000,
@@ -25,8 +25,8 @@ export default function Dashboard() {
     <div className="app-shell">
       <header className="page-header">
         <div>
-          <p className="page-header__eyebrow">مرحباً</p>
-          <h1>{user?.name || 'سائق'}</h1>
+          <p className="page-header__eyebrow">بوابة شركة التوصيل</p>
+          <h1>{user?.name || 'شركة التوصيل'}</h1>
         </div>
         <div className="page-header__actions">
           <button type="button" className="icon-btn" onClick={() => refetch()} aria-label="تحديث">
@@ -40,36 +40,44 @@ export default function Dashboard() {
 
       <section className="stats-grid">
         <StatCard
-          label="عدد الرحلات الجديدة"
-          value={isLoading ? '…' : data?.newTrips}
+          label="بانتظار القبول"
+          value={isLoading ? '…' : data?.pendingConfirmation}
           tone="amber"
-          onClick={() => navigate('/trips?filter=new')}
+          onClick={() => navigate('/requests?status=new')}
         />
         <StatCard
-          label="الرحلات الجارية"
-          value={isLoading ? '…' : data?.activeTrips}
+          label="طلبات مرسلة"
+          value={isLoading ? '…' : data?.sentOrders}
           tone="blue"
-          onClick={() => navigate('/trips?filter=active')}
+          onClick={() => navigate('/sent-orders')}
         />
         <StatCard
-          label="الرحلات المكتملة"
-          value={isLoading ? '…' : data?.completedTrips}
+          label="تم التسليم"
+          value={isLoading ? '…' : data?.delivered}
           tone="green"
-          onClick={() => navigate('/history')}
+          onClick={() => navigate('/requests?status=delivered')}
         />
         <StatCard
-          label="الطلبات المنتظرة"
-          value={isLoading ? '…' : data?.pendingOrders}
-          tone="slate"
-          onClick={() => navigate('/trips?filter=active')}
+          label="مرفوضة"
+          value={isLoading ? '…' : data?.rejected}
+          tone="red"
+          onClick={() => navigate('/requests?status=rejected')}
         />
       </section>
 
       <section className="panel">
-        <h2>ابدأ العمل</h2>
-        <p>راجع الرحلات الجديدة واقبل الطلبات المتاحة لشركتك.</p>
-        <button type="button" className="btn-primary btn-primary--block" onClick={() => navigate('/trips')}>
-          عرض طلبات التوصيل
+        <h2>سير العمل</h2>
+        <ol className="workflow-steps">
+          <li>بانتظار تأكيد المتجر</li>
+          <li>بانتظار شركة التوصيل</li>
+          <li>تعيين سائق ← قيد التوصيل</li>
+          <li>تم التسليم</li>
+        </ol>
+        <button type="button" className="btn-primary btn-primary--block" onClick={() => navigate('/requests?status=new')}>
+          مراجعة الطلبات الجديدة
+        </button>
+        <button type="button" className="btn-secondary btn-primary--block" onClick={() => navigate('/sent-orders')}>
+          الطلبات المرسلة
         </button>
       </section>
 

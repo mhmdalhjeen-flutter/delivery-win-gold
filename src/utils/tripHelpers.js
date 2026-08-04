@@ -1,33 +1,41 @@
-export const TRIP_STATUS_LABELS = {
+export const REQUEST_STATUS_LABELS = {
   waiting: 'بانتظار التأكيد',
-  waiting_for_stores: 'بانتظار المتاجر',
-  ready_for_pickup: 'جاهز للاستلام',
-  driver_assigned: 'تم تعيين السائق',
-  collecting_orders: 'جمع الطلبات',
-  on_delivery: 'في الطريق',
+  waiting_for_stores: 'بانتظار تأكيد المتجر',
+  ready_for_pickup: 'بانتظار شركة التوصيل',
+  accepted: 'مقبول من الشركة',
+  out_for_delivery: 'قيد التوصيل',
   completed: 'تم التسليم',
-  cancelled: 'ملغاة',
-  // legacy aliases from older documents
-  waiting_for_acceptance: 'بانتظار القبول',
-  accepted: 'مقبولة',
-  on_the_way: 'في الطريق',
+  rejected: 'مرفوض',
+  cancelled: 'ملغى',
+  waiting_for_acceptance: 'بانتظار شركة التوصيل',
+  driver_assigned: 'مقبول من الشركة',
+  collecting_orders: 'قيد التوصيل',
+  on_delivery: 'قيد التوصيل',
+  on_the_way: 'قيد التوصيل',
   delivered: 'تم التسليم',
 };
 
-export const TRIP_STATUS_COLORS = {
+export const REQUEST_STATUS_COLORS = {
   waiting: 'status-waiting',
   waiting_for_stores: 'status-waiting',
   ready_for_pickup: 'status-waiting',
-  driver_assigned: 'status-active',
-  collecting_orders: 'status-active',
-  on_delivery: 'status-way',
+  accepted: 'status-active',
+  out_for_delivery: 'status-way',
   completed: 'status-done',
+  rejected: 'status-cancel',
   cancelled: 'status-cancel',
   waiting_for_acceptance: 'status-waiting',
-  accepted: 'status-active',
+  driver_assigned: 'status-active',
+  collecting_orders: 'status-way',
+  on_delivery: 'status-way',
   on_the_way: 'status-way',
   delivered: 'status-done',
 };
+
+/** @deprecated use REQUEST_STATUS_LABELS */
+export const TRIP_STATUS_LABELS = REQUEST_STATUS_LABELS;
+/** @deprecated use REQUEST_STATUS_COLORS */
+export const TRIP_STATUS_COLORS = REQUEST_STATUS_COLORS;
 
 export const PAYMENT_METHOD_LABELS = {
   cash_on_delivery: 'الدفع عند الاستلام',
@@ -74,4 +82,33 @@ export function whatsappHref(phone, text = '') {
 export function mapsHref(address) {
   if (!address?.trim()) return null;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address.trim())}`;
+}
+
+export function isPendingConfirmation(status) {
+  return ['ready_for_pickup', 'waiting_for_acceptance'].includes(status);
+}
+
+/** @deprecated use isPendingConfirmation */
+export function isNewRequest(status) {
+  return isPendingConfirmation(status);
+}
+
+export function isSentOrder(status) {
+  return ['out_for_delivery', 'collecting_orders', 'on_delivery', 'on_the_way'].includes(status);
+}
+
+export function isAcceptedRequest(status) {
+  return ['accepted', 'driver_assigned'].includes(status);
+}
+
+export function isOutForDelivery(status) {
+  return isSentOrder(status);
+}
+
+export function isDelivered(status) {
+  return ['completed', 'delivered'].includes(status);
+}
+
+export function isRejected(status) {
+  return status === 'rejected';
 }

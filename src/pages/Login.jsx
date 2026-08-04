@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Truck, Loader2 } from 'lucide-react';
+import { Building2, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../lib/apiUrl';
 
@@ -35,9 +35,9 @@ export default function Login() {
   return (
     <div className="login-page">
       <div className="login-card">
-        <div className="login-card__icon"><Truck size={32} /></div>
-        <h1>لوحة التوصيل</h1>
-        <p>سجّل دخولك كسائق توصيل</p>
+        <div className="login-card__icon"><Building2 size={32} /></div>
+        <h1>بوابة شركة التوصيل</h1>
+        <p>سجّل دخول شركتك لإدارة طلبات التوصيل</p>
 
         <form onSubmit={handleSubmit} className="login-form">
           <label>
