@@ -1596,6 +1596,164 @@ a {
   place-items: center;
 }
 
+
+/* Driver app — mobile-first */
+.login-portal-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.login-register-link {
+  text-align: center;
+  margin-top: 8px;
+}
+
+.offline-banner,
+.sync-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  margin: 0 16px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.offline-banner {
+  background: #fff7ed;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
+}
+
+.sync-banner {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  justify-content: space-between;
+}
+
+.sync-banner--success {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.driver-assignment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px 100px;
+}
+
+.driver-assignment-card {
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  cursor: pointer;
+}
+
+.driver-assignment-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.driver-assignment-card__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.driver-assignment-card__stores {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.driver-store-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.driver-store-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  background: var(--bg);
+}
+
+.driver-store-card__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.driver-items-list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+}
+
+.btn-deliver-success {
+  width: 100%;
+  margin-top: 16px;
+  padding: 18px 16px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.delivery-proof-preview {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-top: 12px;
+}
+
+.driver-photo-actions {
+  margin-top: 8px;
+}
+
+.hidden-input {
+  display: none;
+}
+
+.driver-card__badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.form-success {
+  color: #047857;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
 @media (min-width: 480px) {
   .modal-backdrop {
     align-items: center;

@@ -16,7 +16,7 @@ import {
   PAYMENT_METHOD_LABELS,
   PAYMENT_STATUS_LABELS,
   isPendingConfirmation,
-  isAcceptedRequest,
+  isAssignedRequest,
   isSentOrder,
 } from '../utils/tripHelpers';
 
@@ -41,6 +41,7 @@ export default function RequestDetails() {
     qc.invalidateQueries({ queryKey: queryKeys.request(requestId) });
     qc.invalidateQueries({ queryKey: queryKeys.dashboardStats });
     qc.invalidateQueries({ queryKey: queryKeys.sentOrders });
+    qc.invalidateQueries({ queryKey: queryKeys.assignedOrders });
     qc.invalidateQueries({ queryKey: ['delivery', 'company', 'requests'] });
   };
 
@@ -65,6 +66,7 @@ export default function RequestDetails() {
   const busy = action.isPending;
   const status = request.status;
   const assigned = request.assignedDriver;
+  const canAssign = isPendingConfirmation(status) || isAssignedRequest(status);
 
   return (
     <div className="app-shell app-shell--detail">
@@ -162,7 +164,7 @@ export default function RequestDetails() {
               disabled={busy}
               onClick={() => setAssignOpen(true)}
             >
-              قبول وتعيين سائق
+              تعيين سائق
             </button>
             <button
               type="button"
@@ -206,15 +208,15 @@ export default function RequestDetails() {
           </div>
         )}
 
-        {isAcceptedRequest(status) && (
+        {isAssignedRequest(status) && (
           <button
             type="button"
-            className="btn-primary btn-primary--block"
+            className="btn-secondary btn-primary--block"
             disabled={busy}
             onClick={() => setAssignOpen(true)}
           >
             {busy ? <Loader2 size={18} className="spin" /> : null}
-            تعيين سائق
+            تغيير السائق
           </button>
         )}
 
@@ -264,7 +266,7 @@ export default function RequestDetails() {
             {
               onSuccess: () => {
                 setAssignOpen(false);
-                navigate('/sent-orders', { replace: true });
+                navigate('/assigned-orders', { replace: true });
               },
             },
           );

@@ -113,7 +113,7 @@ export default function AssignDriverModal({ open, saving, onClose, onConfirm }) 
             onClick={handleConfirm}
           >
             {saving ? <Loader2 size={18} className="spin" /> : null}
-            تأكيد التعيين
+            تعيين السائق
           </button>
           <button type="button" className="btn-ghost btn-primary--block" onClick={handleClose}>
             إلغاء

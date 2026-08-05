@@ -23,5 +23,10 @@ export const queryKeys = {
   notifications: ['delivery', 'notifications'],
   notificationCount: ['delivery', 'notifications', 'unread'],
   sentOrders: ['delivery', 'company', 'sent-orders'],
+  assignedOrders: ['delivery', 'company', 'assigned-orders'],
   drivers: (params) => ['delivery', 'company', 'drivers', params],
+  driverAssignments: ['delivery', 'driver', 'assignments'],
+  driverAssignment: (id) => ['delivery', 'driver', 'assignment', id],
+  driverHistory: ['delivery', 'driver', 'history'],
+  driverRegistrationPassword: ['delivery', 'company', 'driver-registration-password'],
 };

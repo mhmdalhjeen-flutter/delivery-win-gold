@@ -1,14 +1,14 @@
 export const REQUEST_STATUS_LABELS = {
   waiting: 'بانتظار التأكيد',
   waiting_for_stores: 'بانتظار تأكيد المتجر',
-  ready_for_pickup: 'بانتظار شركة التوصيل',
+  ready_for_pickup: 'جاهز للاستلام',
+  driver_assigned: 'معيّن لسائق',
   accepted: 'مقبول من الشركة',
   out_for_delivery: 'قيد التوصيل',
   completed: 'تم التسليم',
   rejected: 'مرفوض',
   cancelled: 'ملغى',
-  waiting_for_acceptance: 'بانتظار شركة التوصيل',
-  driver_assigned: 'مقبول من الشركة',
+  waiting_for_acceptance: 'جاهز للاستلام',
   collecting_orders: 'قيد التوصيل',
   on_delivery: 'قيد التوصيل',
   on_the_way: 'قيد التوصيل',
@@ -19,13 +19,13 @@ export const REQUEST_STATUS_COLORS = {
   waiting: 'status-waiting',
   waiting_for_stores: 'status-waiting',
   ready_for_pickup: 'status-waiting',
+  driver_assigned: 'status-active',
   accepted: 'status-active',
   out_for_delivery: 'status-way',
   completed: 'status-done',
   rejected: 'status-cancel',
   cancelled: 'status-cancel',
   waiting_for_acceptance: 'status-waiting',
-  driver_assigned: 'status-active',
   collecting_orders: 'status-way',
   on_delivery: 'status-way',
   on_the_way: 'status-way',
@@ -91,6 +91,10 @@ export function isPendingConfirmation(status) {
 /** @deprecated use isPendingConfirmation */
 export function isNewRequest(status) {
   return isPendingConfirmation(status);
+}
+
+export function isAssignedRequest(status) {
+  return status === 'driver_assigned';
 }
 
 export function isSentOrder(status) {

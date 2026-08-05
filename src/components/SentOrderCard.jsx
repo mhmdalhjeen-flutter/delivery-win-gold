@@ -8,9 +8,10 @@ import {
   REQUEST_STATUS_LABELS,
   REQUEST_STATUS_COLORS,
   formatDate,
+  isOutForDelivery,
 } from '../utils/tripHelpers';
 
-export default function SentOrderCard({ order, onUpdated }) {
+export default function SentOrderCard({ order, onUpdated, showComplete = true }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [confirmDeliver, setConfirmDeliver] = useState(false);
@@ -22,6 +23,7 @@ export default function SentOrderCard({ order, onUpdated }) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.sentOrders });
+      qc.invalidateQueries({ queryKey: queryKeys.assignedOrders });
       qc.invalidateQueries({ queryKey: queryKeys.dashboardStats });
       qc.invalidateQueries({ queryKey: ['delivery', 'company', 'requests'] });
       setConfirmDeliver(false);
@@ -82,7 +84,7 @@ export default function SentOrderCard({ order, onUpdated }) {
           التفاصيل
         </button>
 
-        {!confirmDeliver ? (
+        {showComplete && !confirmDeliver && isOutForDelivery(status) && (
           <button
             type="button"
             className="btn-primary"
@@ -90,7 +92,9 @@ export default function SentOrderCard({ order, onUpdated }) {
           >
             تم التسليم
           </button>
-        ) : (
+        )}
+
+        {showComplete && confirmDeliver && (
           <div className="sent-order-card__confirm">
             <button
               type="button"

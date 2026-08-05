@@ -72,7 +72,7 @@ export default function Drivers() {
   return (
     <SettingsPageLayout
       title="دليل السائقين"
-      subtitle="سجلات اتصال — بدون حسابات دخول"
+      subtitle="إدارة السائقين المسجّلين في شركتك"
       actions={(
         <button type="button" className="icon-btn icon-btn--primary" onClick={openCreate} aria-label="إضافة سائق">
           <Plus size={20} />
@@ -88,7 +88,9 @@ export default function Drivers() {
         />
       </div>
 
-      <p className="form-hint drivers-hint">يُستخدم السائق عند قبول الطلب — يصل اسمه ورقمه للزبون مباشرة.</p>
+      <p className="form-hint drivers-hint">
+        السائقون المسجّلين ذاتياً أو المُضافين يدوياً — يمكن تعيينهم على الطلبات.
+      </p>
 
       {isLoading && <p className="muted-center">جاري التحميل...</p>}
 
@@ -114,6 +116,7 @@ export default function Drivers() {
                 {driver.whatsapp && driver.whatsapp !== driver.phone && (
                   <p className="driver-card__wa" dir="ltr">WA: {driver.whatsapp}</p>
                 )}
+                {driver.hasAccount && <span className="driver-card__badge">حساب مسجّل</span>}
                 {driver.notes && <p className="driver-card__notes">{driver.notes}</p>}
               </div>
             </div>
