@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { LogOut, MapPin, Phone, RefreshCw, User, WifiOff } from 'lucide-react';
 import api from '../api/axios';
-import { useAuth } from '../context/AuthContext';
-import { queryKeys } from '../lib/queryClient';
-import useOfflineSync from '../hooks/useOfflineSync';
-import AppHeader from '../components/AppHeader';
-import DriverBottomNav from '../components/DriverBottomNav';
+import { useAuth } from '../../context/AuthContext';
+import { queryKeys } from '../../lib/queryClient';
+import useOfflineSync from '../../hooks/useOfflineSync';
+import AppHeader from '../../components/AppHeader';
+import DriverBottomNav from '../../components/DriverBottomNav';
+
 
 export default function DriverHome() {
   const navigate = useNavigate();
