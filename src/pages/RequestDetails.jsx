@@ -35,6 +35,7 @@ export default function RequestDetails() {
       const { data } = await api.get(`/delivery/company/requests/${requestId}`);
       return data.request;
     },
+    refetchInterval: 15_000,
   });
 
   const invalidate = () => {
@@ -109,10 +110,12 @@ export default function RequestDetails() {
           <div><span>الهاتف</span><strong dir="ltr">{request.customerPhone || '—'}</strong></div>
           <div><span>المنطقة</span><strong>{request.deliveryArea || '—'}</strong></div>
           <div><span>العنوان</span><strong>{request.deliveryAddress || '—'}</strong></div>
+          <div><span>تاريخ الطلب</span><strong>{formatDate(request.submittedAt || request.createdAt)}</strong></div>
+          <div><span>آخر تحديث</span><strong>{formatDate(request.lastUpdatedAt || request.updatedAt)}</strong></div>
         </div>
         <ContactActions
           phone={request.customerPhone}
-          whatsapp={request.customerWhatsapp}
+          whatsapp={request.customerWhatsapp || request.customerPhone}
           address={request.deliveryAddress}
           chatUserId={request.customer}
           chatLabel="محادثة الزبون"
@@ -150,8 +153,12 @@ export default function RequestDetails() {
               <div><span>اسم المحوّل</span><strong>{request.transferInformation?.senderName || '—'}</strong></div>
               <div><span>هاتف المحوّل</span><strong dir="ltr">{request.transferInformation?.contactNumber || '—'}</strong></div>
               <div><span>مرجع</span><strong>{request.transferInformation?.referenceNumber || '—'}</strong></div>
+              <div><span>ملاحظة</span><strong>{request.transferInformation?.note || request.paymentNotes || '—'}</strong></div>
             </div>
           </div>
+        )}
+        {request.paymentNotes && isCash && (
+          <p className="payment-note">{request.paymentNotes}</p>
         )}
       </section>
 
