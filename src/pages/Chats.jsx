@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { MessageCircle } from 'lucide-react';
 import api from '../api/axios';
 import { queryKeys } from '../lib/queryClient';
-import SettingsPageLayout from '../components/SettingsPageLayout';
+import AppHeader from '../components/AppHeader';
+import BottomNav from '../components/BottomNav';
 import { formatDate } from '../utils/tripHelpers';
 import { useAuth } from '../context/AuthContext';
 
@@ -16,14 +17,16 @@ export default function Chats() {
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: queryKeys.chats,
     queryFn: async () => {
-      const { data } = await api.get('/chat');
+      const { data } = await api.get('/chats');
       return data.conversations || [];
     },
     refetchInterval: 25_000,
   });
 
   return (
-    <SettingsPageLayout title="المحادثات" subtitle="تواصل مع الزبائن" showNav={false}>
+    <div className="app-shell">
+      <AppHeader title="المحادثات" subtitle="تواصل مع الزبائن" />
+
       {isLoading && <p className="muted-center">جاري التحميل...</p>}
 
       {!isLoading && conversations.length === 0 && (
@@ -38,6 +41,7 @@ export default function Chats() {
         {conversations.map((conv) => {
           const peer = (conv.participants || []).find((p) => String(p._id) !== String(myId));
           const last = conv.lastMessage;
+          const unread = conv.unreadCount?.[String(myId)] || conv.unreadCount?.[myId] || 0;
           return (
             <button
               key={conv._id}
@@ -50,11 +54,16 @@ export default function Chats() {
                 <strong>{peer?.name || 'محادثة'}</strong>
                 <span>{last?.text || '—'}</span>
               </span>
-              {last?.createdAt && <time>{formatDate(last.createdAt)}</time>}
+              <span className="chat-list-item__meta">
+                {unread > 0 && <span className="chat-list-item__badge">{unread}</span>}
+                {last?.createdAt && <time>{formatDate(last.createdAt)}</time>}
+              </span>
             </button>
           );
         })}
       </div>
-    </SettingsPageLayout>
+
+      <BottomNav />
+    </div>
   );
 }

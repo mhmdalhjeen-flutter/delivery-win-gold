@@ -19,6 +19,7 @@ export const queryKeys = {
   pricing: ['delivery', 'company', 'pricing'],
   regions: ['delivery', 'company', 'regions'],
   chats: ['delivery', 'chats'],
+  chatUnreadCount: ['delivery', 'chats', 'unread'],
   notifications: ['delivery', 'notifications'],
   notificationCount: ['delivery', 'notifications', 'unread'],
   sentOrders: ['delivery', 'company', 'sent-orders'],

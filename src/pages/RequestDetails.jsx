@@ -7,6 +7,7 @@ import { queryKeys } from '../lib/queryClient';
 import ContactActions from '../components/ContactActions';
 import StoreStopCard from '../components/StoreStopCard';
 import AssignDriverModal from '../components/AssignDriverModal';
+import { HeaderIconLinks } from '../components/AppHeader';
 import {
   REQUEST_STATUS_LABELS,
   REQUEST_STATUS_COLORS,
@@ -68,14 +69,19 @@ export default function RequestDetails() {
   return (
     <div className="app-shell app-shell--detail">
       <header className="page-header page-header--back">
-        <button type="button" className="icon-btn" onClick={() => navigate(-1)} aria-label="رجوع">
-          <ArrowRight size={20} />
-        </button>
-        <div>
-          <h1>{request.orderNumber ? `#${request.orderNumber}` : 'تفاصيل الطلب'}</h1>
-          <span className={`trip-card__status ${REQUEST_STATUS_COLORS[status] || ''}`}>
-            {request.statusLabel || REQUEST_STATUS_LABELS[status]}
-          </span>
+        <div className="page-header__start">
+          <button type="button" className="icon-btn" onClick={() => navigate(-1)} aria-label="رجوع">
+            <ArrowRight size={20} />
+          </button>
+          <div className="page-header__titles">
+            <h1>{request.orderNumber ? `#${request.orderNumber}` : 'تفاصيل الطلب'}</h1>
+            <span className={`trip-card__status ${REQUEST_STATUS_COLORS[status] || ''}`}>
+              {request.statusLabel || REQUEST_STATUS_LABELS[status]}
+            </span>
+          </div>
+        </div>
+        <div className="page-header__actions">
+          <HeaderIconLinks />
         </div>
       </header>
 

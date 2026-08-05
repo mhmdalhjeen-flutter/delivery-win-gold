@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight, Loader2, Send } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { HeaderIconLinks } from '../components/AppHeader';
 
 export default function Chat() {
   const { userId } = useParams();
@@ -23,7 +24,7 @@ export default function Chat() {
     async function boot() {
       setLoading(true);
       try {
-        const { data: convData } = await api.post('/chat', {
+        const { data: convData } = await api.post('/chats', {
           recipientId: userId,
           context: { type: 'delivery', label: 'توصيل' },
         });
@@ -33,7 +34,7 @@ export default function Chat() {
         const peer = (conv.participants || []).find((p) => String(p._id) !== String(myId));
         if (peer?.name) setPeerName(peer.name);
 
-        const { data: msgData } = await api.get(`/chat/${conv._id}`);
+        const { data: msgData } = await api.get(`/chats/${conv._id}`);
         if (!cancelled) setMessages(msgData.messages || msgData || []);
       } catch {
         if (!cancelled) setMessages([]);
@@ -56,7 +57,7 @@ export default function Chat() {
     if (!body || !convId || sending) return;
     setSending(true);
     try {
-      const { data } = await api.post(`/chat/${convId}`, { text: body });
+      const { data } = await api.post(`/chats/${convId}`, { text: body });
       const msg = data.message || data;
       setMessages((prev) => [...prev, msg]);
       setText('');
@@ -68,10 +69,17 @@ export default function Chat() {
   return (
     <div className="app-shell app-shell--chat">
       <header className="page-header page-header--back">
-        <button type="button" className="icon-btn" onClick={() => navigate(-1)} aria-label="رجوع">
-          <ArrowRight size={20} />
-        </button>
-        <h1>{peerName}</h1>
+        <div className="page-header__start">
+          <button type="button" className="icon-btn" onClick={() => navigate(-1)} aria-label="رجوع">
+            <ArrowRight size={20} />
+          </button>
+          <div className="page-header__titles">
+            <h1>{peerName}</h1>
+          </div>
+        </div>
+        <div className="page-header__actions">
+          <HeaderIconLinks />
+        </div>
       </header>
 
       <div className="chat-thread">

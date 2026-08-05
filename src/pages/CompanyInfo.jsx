@@ -7,7 +7,7 @@ import SettingsPageLayout from '../components/SettingsPageLayout';
 
 export default function CompanyInfo() {
   const qc = useQueryClient();
-  const [form, setForm] = useState({ phone: '', whatsapp: '', description: '', logo: '' });
+  const [form, setForm] = useState({ phone: '', whatsapp: '', address: '', description: '', logo: '' });
   const [saved, setSaved] = useState(false);
 
   const { data: profile, isLoading } = useQuery({
@@ -23,6 +23,7 @@ export default function CompanyInfo() {
       setForm({
         phone: profile.phone || '',
         whatsapp: profile.whatsapp || '',
+        address: profile.address || '',
         description: profile.description || '',
         logo: profile.logo || '',
       });
@@ -74,6 +75,10 @@ export default function CompanyInfo() {
           <label>
             <span>واتساب</span>
             <input value={form.whatsapp} onChange={set('whatsapp')} dir="ltr" inputMode="tel" />
+          </label>
+          <label>
+            <span>عنوان الشركة</span>
+            <textarea value={form.address} onChange={set('address')} rows={3} maxLength={500} />
           </label>
           <label>
             <span>الوصف</span>
