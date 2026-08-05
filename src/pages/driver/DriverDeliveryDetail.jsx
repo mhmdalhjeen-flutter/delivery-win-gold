@@ -2,10 +2,10 @@ import React, { useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, Camera, CheckCircle2, Loader2, MapPin, Phone, Store, User } from 'lucide-react';
-import api from '../api/axios';
-import { queryKeys } from '../lib/queryClient';
-import { queueDeliveryCompletion } from '../lib/offlineDeliveryQueue';
-import useOfflineSync from '../hooks/useOfflineSync';
+import api from '../../api/axios';
+import { queryKeys } from '../../lib/queryClient';
+import { queueDeliveryCompletion } from '../../lib/offlineDeliveryQueue';
+import useOfflineSync from '../../hooks/useOfflineSync';
 
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {

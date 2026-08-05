@@ -2,11 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { MapPin, User } from 'lucide-react';
-import api from '../api/axios';
-import { queryKeys } from '../lib/queryClient';
-import AppHeader from '../components/AppHeader';
-import DriverBottomNav from '../components/DriverBottomNav';
-import { formatDate } from '../utils/tripHelpers';
+import api from '../../api/axios';
+import { queryKeys } from '../../lib/queryClient';
+import AppHeader from '../../components/AppHeader';
+import DriverBottomNav from '../../components/DriverBottomNav';
+import { formatDate } from '../../utils/tripHelpers';
 
 export default function DriverHistory() {
   const navigate = useNavigate();
