@@ -1,41 +1,36 @@
 import React, { useEffect, useState } from 'react';
 import { Loader2, Upload, X } from 'lucide-react';
-
-const ACCOUNT_TYPES = [
-  { id: 'bank_palestine', label: 'بنك فلسطين' },
-  { id: 'palpay', label: 'PalPay' },
-  { id: 'jawwal_pay', label: 'Jawwal Pay' },
-];
+import { ACCOUNT_KINDS } from '../utils/paymentMethodConstants';
 
 const EMPTY = {
   type: 'bank_palestine',
   accountName: '',
   accountNumber: '',
-  iban: '',
+  accountType: 'merchant',
   qrCodeUrl: '',
   qrPreview: '',
   isActive: true,
 };
 
-export default function PaymentAccountFormModal({ open, account, saving, onClose, onSave }) {
+export default function PaymentAccountFormModal({ open, account, fixedType = null, saving, onClose, onSave }) {
   const [form, setForm] = useState(EMPTY);
 
   useEffect(() => {
     if (!open) return;
     if (account) {
       setForm({
-        type: account.type || 'bank_palestine',
+        type: fixedType || account.type || 'bank_palestine',
         accountName: account.accountName || '',
         accountNumber: account.accountNumber || '',
-        iban: account.iban || '',
+        accountType: account.accountType || 'merchant',
         qrCodeUrl: '',
         qrPreview: account.qrCodeUrl || '',
         isActive: account.isActive !== false,
       });
     } else {
-      setForm(EMPTY);
+      setForm({ ...EMPTY, type: fixedType || EMPTY.type });
     }
-  }, [open, account]);
+  }, [open, account, fixedType]);
 
   if (!open) return null;
 
@@ -56,13 +51,14 @@ export default function PaymentAccountFormModal({ open, account, saving, onClose
   const handleSubmit = (e) => {
     e.preventDefault();
     const payload = {
-      type: form.type,
+      type: fixedType || form.type,
       accountName: form.accountName,
       accountNumber: form.accountNumber,
-      iban: form.iban,
+      accountType: form.accountType || 'merchant',
       isActive: form.isActive,
     };
     if (form.qrCodeUrl) payload.qrCodeUrl = form.qrCodeUrl;
+    else if (!form.qrPreview) payload.qrCodeUrl = '';
     onSave(payload);
   };
 
@@ -78,25 +74,29 @@ export default function PaymentAccountFormModal({ open, account, saving, onClose
 
         <form className="modal-form" onSubmit={handleSubmit}>
           <label>
-            <span>نوع الدفع</span>
-            <select value={form.type} onChange={set('type')}>
-              {ACCOUNT_TYPES.map((t) => (
-                <option key={t.id} value={t.id}>{t.label}</option>
-              ))}
-            </select>
-          </label>
-          <label>
             <span>اسم صاحب الحساب</span>
             <input value={form.accountName} onChange={set('accountName')} required maxLength={120} />
           </label>
           <label>
-            <span>رقم الحساب</span>
+            <span>رقم الحساب / التحويل</span>
             <input value={form.accountNumber} onChange={set('accountNumber')} required dir="ltr" maxLength={64} />
           </label>
-          <label>
-            <span>IBAN (اختياري)</span>
-            <input value={form.iban} onChange={set('iban')} dir="ltr" maxLength={64} />
-          </label>
+
+          <div>
+            <span className="form-hint" style={{ display: 'block', marginBottom: 6 }}>نوع الحساب</span>
+            <div className="payment-account-kind">
+              {ACCOUNT_KINDS.map((kind) => (
+                <button
+                  key={kind.id}
+                  type="button"
+                  className={`payment-account-kind__btn${form.accountType === kind.id ? ' is-active' : ''}`}
+                  onClick={() => setForm((prev) => ({ ...prev, accountType: kind.id }))}
+                >
+                  {kind.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div className="upload-field">
             <span className="upload-field__label">صورة QR (اختياري)</span>
@@ -111,7 +111,7 @@ export default function PaymentAccountFormModal({ open, account, saving, onClose
               ) : (
                 <label className="upload-field__btn">
                   <Upload size={18} />
-                  <span>رفع صورة QR</span>
+                  <span>رفع من الجهاز</span>
                   <input type="file" accept="image/*" className="hidden" onChange={handleQrPick} />
                 </label>
               )}
