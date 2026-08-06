@@ -78,7 +78,7 @@ export default function Chat() {
           </div>
         </div>
         <div className="page-header__actions">
-          <HeaderIconLinks />
+          {user?.role === 'delivery_company' ? <HeaderIconLinks /> : null}
         </div>
       </header>
 

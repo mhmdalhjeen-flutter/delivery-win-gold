@@ -22,6 +22,7 @@ import DriverHome from './pages/driver/DriverHome';
 import DriverDeliveryDetail from './pages/driver/DriverDeliveryDetail';
 import DriverHistory from './pages/driver/DriverHistory';
 import DriverRegistrationPassword from './pages/DriverRegistrationPassword';
+import DeliveryProofs from './pages/DeliveryProofs';
 
 function AppRoutes() {
   const { isAuth, user } = useAuth();
@@ -37,6 +38,7 @@ function AppRoutes() {
       <Route path="/driver" element={<DriverProtectedRoute><DriverHome /></DriverProtectedRoute>} />
       <Route path="/driver/history" element={<DriverProtectedRoute><DriverHistory /></DriverProtectedRoute>} />
       <Route path="/driver/delivery/:assignmentId" element={<DriverProtectedRoute><DriverDeliveryDetail /></DriverProtectedRoute>} />
+      <Route path="/driver/chat/:userId" element={<DriverProtectedRoute><Chat /></DriverProtectedRoute>} />
 
       <Route path="/" element={<CompanyProtectedRoute><Dashboard /></CompanyProtectedRoute>} />
       <Route path="/requests" element={<CompanyProtectedRoute><Requests /></CompanyProtectedRoute>} />
@@ -53,6 +55,7 @@ function AppRoutes() {
       <Route path="/settings/drivers" element={<CompanyProtectedRoute><Drivers /></CompanyProtectedRoute>} />
       <Route path="/settings/driver-password" element={<CompanyProtectedRoute><DriverRegistrationPassword /></CompanyProtectedRoute>} />
       <Route path="/settings/chats" element={<Navigate to="/chats" replace />} />
+      <Route path="/proofs" element={<CompanyProtectedRoute><DeliveryProofs /></CompanyProtectedRoute>} />
       <Route path="/assigned-orders" element={<CompanyProtectedRoute><AssignedOrders /></CompanyProtectedRoute>} />
       <Route path="/sent-orders" element={<CompanyProtectedRoute><SentOrders /></CompanyProtectedRoute>} />
       <Route path="/notifications" element={<CompanyProtectedRoute><Notifications /></CompanyProtectedRoute>} />

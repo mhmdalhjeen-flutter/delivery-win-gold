@@ -1,31 +1,27 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, Camera, CheckCircle2, Loader2, MapPin, Phone, Store, User } from 'lucide-react';
+import { ArrowRight, Camera, CheckCircle2, ImagePlus, Loader2, MapPin, Phone, Store, X } from 'lucide-react';
 import api from '../../api/axios';
 import { queryKeys } from '../../lib/queryClient';
 import { queueDeliveryCompletion } from '../../lib/offlineDeliveryQueue';
 import useOfflineSync from '../../hooks/useOfflineSync';
-
-function readFileAsDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
+import ContactActions from '../../components/ContactActions';
+import { fileToCompressedDataUrl } from '../../utils/imageUpload';
 
 export default function DriverDeliveryDetail() {
   const { assignmentId } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const fileRef = useRef(null);
+  const cameraRef = useRef(null);
+  const galleryRef = useRef(null);
   const [note, setNote] = useState('');
   const [proofPreview, setProofPreview] = useState('');
   const [proofData, setProofData] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [photoError, setPhotoError] = useState('');
   const [offlineSaved, setOfflineSaved] = useState(false);
+  const [compressing, setCompressing] = useState(false);
   const { refreshCount } = useOfflineSync(true);
 
   const { data: assignment, isLoading } = useQuery({
@@ -54,13 +50,38 @@ export default function DriverDeliveryDetail() {
 
   const handlePhoto = async (e) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
-    const dataUrl = await readFileAsDataUrl(file);
-    setProofPreview(dataUrl);
-    setProofData(dataUrl);
+    setCompressing(true);
+    setPhotoError('');
+    try {
+      const dataUrl = await fileToCompressedDataUrl(file, { maxWidth: 1600, quality: 0.82 });
+      setProofPreview(dataUrl);
+      setProofData(dataUrl);
+    } catch {
+      setPhotoError('تعذّر قراءة الصورة — حاول مرة أخرى');
+    } finally {
+      setCompressing(false);
+    }
+  };
+
+  const openConfirm = () => {
+    setPhotoError('');
+    setConfirmOpen(true);
+  };
+
+  const closeConfirm = () => {
+    if (complete.isPending) return;
+    setConfirmOpen(false);
+    setPhotoError('');
   };
 
   const handleDeliver = async () => {
+    if (!proofData) {
+      setPhotoError('صورة إثبات التسليم مطلوبة');
+      return;
+    }
+
     const clientSyncId = `${assignmentId}-${Date.now()}`;
     const payload = {
       sessionId: assignmentId,
@@ -85,6 +106,10 @@ export default function DriverDeliveryDetail() {
         clientSyncId,
       });
     } catch (err) {
+      if (err.response?.data?.message) {
+        setPhotoError(err.response.data.message);
+        return;
+      }
       if (!err.response) {
         queueDeliveryCompletion(payload);
         refreshCount();
@@ -127,6 +152,14 @@ export default function DriverDeliveryDetail() {
           <div><span>العنوان</span><strong>{assignment.deliveryAddress || '—'}</strong></div>
           <div><span>مرجع الشركة</span><strong>{assignment.referenceNumber}</strong></div>
         </div>
+        <ContactActions
+          phone={assignment.customerPhone}
+          whatsapp={assignment.customerWhatsapp || assignment.customerPhone}
+          address={assignment.deliveryAddress}
+          chatUserId={assignment.customerId}
+          chatBasePath="/driver/chat"
+          chatLabel="محادثة"
+        />
       </section>
 
       <section className="panel">
@@ -157,57 +190,11 @@ export default function DriverDeliveryDetail() {
       {assignment.canConfirmDelivery && (
         <section className="panel panel--deliver">
           <h2>تأكيد التسليم</h2>
-          <label className="modal-form__note">
-            <span>ملاحظة (اختياري)</span>
-            <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} maxLength={1000} />
-          </label>
-
-          <div className="driver-photo-actions">
-            <button type="button" className="btn-secondary" onClick={() => fileRef.current?.click()}>
-              <Camera size={18} />
-              {proofPreview ? 'تغيير الصورة' : 'التقاط / رفع صورة'}
-            </button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden-input"
-              onChange={handlePhoto}
-            />
-          </div>
-
-          {proofPreview && (
-            <img src={proofPreview} alt="صورة التسليم" className="delivery-proof-preview" />
-          )}
-
-          {!confirmOpen ? (
-            <button
-              type="button"
-              className="btn-deliver-success"
-              onClick={() => setConfirmOpen(true)}
-            >
-              <CheckCircle2 size={24} />
-              تم التسليم بنجاح
-            </button>
-          ) : (
-            <div className="confirm-box">
-              <p>تأكيد تسليم الطلب للزبون؟</p>
-              <div className="confirm-box__actions">
-                <button
-                  type="button"
-                  className="btn-primary"
-                  disabled={complete.isPending}
-                  onClick={handleDeliver}
-                >
-                  {complete.isPending ? <Loader2 size={18} className="spin" /> : 'تأكيد التسليم'}
-                </button>
-                <button type="button" className="btn-ghost" onClick={() => setConfirmOpen(false)}>
-                  إلغاء
-                </button>
-              </div>
-            </div>
-          )}
+          <p className="form-hint">اضغط «تم التسليم» ثم أرفق صورة الإثبات لإكمال التوصيل.</p>
+          <button type="button" className="btn-deliver-success" onClick={openConfirm}>
+            <CheckCircle2 size={24} />
+            تم التسليم
+          </button>
         </section>
       )}
 
@@ -215,6 +202,101 @@ export default function DriverDeliveryDetail() {
         <section className="panel panel--hint">
           <p>توجّه إلى المتجر لاستلام الطلب — زر التسليم يتفعّل بعد استلام المتجر للطلب</p>
         </section>
+      )}
+
+      {confirmOpen && (
+        <div className="modal-backdrop" role="presentation" onClick={closeConfirm}>
+          <div
+            className="modal-sheet modal-sheet--tall"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="deliver-confirm-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <header className="modal-sheet__head">
+              <h2 id="deliver-confirm-title">إثبات التسليم</h2>
+              <button type="button" className="icon-btn" onClick={closeConfirm} aria-label="إغلاق">
+                <X size={20} />
+              </button>
+            </header>
+
+            <div className="modal-form">
+              <p className="modal-sheet__hint">صورة إثبات التسليم مطلوبة قبل التأكيد النهائي.</p>
+
+              <div className="driver-photo-actions driver-photo-actions--row">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  disabled={compressing}
+                  onClick={() => cameraRef.current?.click()}
+                >
+                  <Camera size={18} />
+                  كاميرا
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  disabled={compressing}
+                  onClick={() => galleryRef.current?.click()}
+                >
+                  <ImagePlus size={18} />
+                  معرض / ملفات
+                </button>
+              </div>
+
+              <input
+                ref={cameraRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden-input"
+                onChange={handlePhoto}
+              />
+              <input
+                ref={galleryRef}
+                type="file"
+                accept="image/*"
+                className="hidden-input"
+                onChange={handlePhoto}
+              />
+
+              {compressing && (
+                <p className="muted-center"><Loader2 size={18} className="spin" /> جاري تجهيز الصورة...</p>
+              )}
+
+              {proofPreview && (
+                <img src={proofPreview} alt="صورة التسليم" className="delivery-proof-preview" />
+              )}
+
+              <label className="modal-form__note">
+                <span>ملاحظة (اختياري)</span>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  rows={3}
+                  maxLength={1000}
+                  placeholder="ملاحظة للتسليم..."
+                />
+              </label>
+
+              {photoError && <p className="form-error">{photoError}</p>}
+
+              <div className="modal-sheet__actions">
+                <button
+                  type="button"
+                  className="btn-primary btn-primary--block"
+                  disabled={complete.isPending || compressing || !proofData}
+                  onClick={handleDeliver}
+                >
+                  {complete.isPending ? <Loader2 size={18} className="spin" /> : 'تأكيد التسليم'}
+                </button>
+                <button type="button" className="btn-ghost btn-primary--block" onClick={closeConfirm}>
+                  إلغاء
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

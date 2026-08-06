@@ -29,4 +29,6 @@ export const queryKeys = {
   driverAssignment: (id) => ['delivery', 'driver', 'assignment', id],
   driverHistory: ['delivery', 'driver', 'history'],
   driverRegistrationPassword: ['delivery', 'company', 'driver-registration-password'],
+  deliveryProofs: (params) => ['delivery', 'company', 'proofs', params],
+  deliveryProofFilterOptions: ['delivery', 'company', 'proofs', 'filter-options'],
 };

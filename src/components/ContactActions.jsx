@@ -9,11 +9,13 @@ export default function ContactActions({
   address,
   chatUserId,
   chatLabel = 'محادثة',
+  chatBasePath = '/chat',
 }) {
   const navigate = useNavigate();
   const tel = phoneHref(phone);
   const wa = whatsappHref(whatsapp || phone);
   const map = mapsHref(address);
+  const chatPath = `${chatBasePath.replace(/\/$/, '')}/${chatUserId}`;
 
   return (
     <div className="contact-actions">
@@ -39,7 +41,7 @@ export default function ContactActions({
         <button
           type="button"
           className="contact-actions__btn contact-actions__btn--chat"
-          onClick={() => navigate(`/chat/${chatUserId}`)}
+          onClick={() => navigate(chatPath)}
         >
           <MessageCircle size={18} />
           <span>{chatLabel}</span>

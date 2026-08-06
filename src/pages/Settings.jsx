@@ -16,6 +16,8 @@ import {
 
   Users,
 
+  Camera,
+
 } from 'lucide-react';
 
 import { useQuery } from '@tanstack/react-query';
@@ -42,6 +44,7 @@ const LINKS = [
 
   { to: '/settings/drivers', icon: Users, label: 'دليل السائقين', desc: 'إدارة السائقين المسجّلين — تفعيل وتعطيل' },
   { to: '/settings/driver-password', icon: Users, label: 'كلمة مرور تسجيل السائقين', desc: 'مشاركة مع السائقين للتسجيل الذاتي' },
+  { to: '/proofs', icon: Camera, label: 'إثباتات التوصيل', desc: 'صور وملاحظات التسليم المكتملة' },
 
 ];
 
