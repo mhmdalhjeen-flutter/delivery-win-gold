@@ -30,6 +30,7 @@ export default function DriverDeliveryDetail() {
       const { data } = await api.get(`/delivery/driver/assignments/${assignmentId}`);
       return data.assignment;
     },
+    refetchInterval: (query) => (query.state.data?.canConfirmDelivery ? false : 5_000),
   });
 
   const complete = useMutation({

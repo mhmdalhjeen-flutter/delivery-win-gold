@@ -21,7 +21,7 @@ export default function DriverHome() {
       const { data } = await api.get('/delivery/driver/assignments');
       return data.assignments || [];
     },
-    refetchInterval: 20_000,
+    refetchInterval: 8_000,
   });
 
   return (
