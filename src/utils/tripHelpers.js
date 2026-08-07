@@ -39,7 +39,7 @@ export const TRIP_STATUS_COLORS = REQUEST_STATUS_COLORS;
 
 export const PAYMENT_METHOD_LABELS = {
   cash_on_delivery: 'الدفع عند الاستلام',
-  seller_agreement: 'الاتفاق مع المتجر',
+  seller_agreement: 'الاتفاق مع البائع',
   bank_palestine: 'بنك فلسطين',
   palpay: 'PalPay',
   jawwal_pay: 'Jawwal Pay',
