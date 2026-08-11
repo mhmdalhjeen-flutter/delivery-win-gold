@@ -10,6 +10,7 @@ import {
   Users,
   Camera,
   Receipt,
+  CheckCircle2,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
@@ -29,8 +30,40 @@ const LINKS = [
   { to: '/proofs', icon: Camera, label: 'إثباتات التوصيل', desc: 'صور وملاحظات التسليم المكتملة' },
 ];
 
+function getInstallRow(installStatus, installing) {
+  if (installStatus === 'installed') {
+    return {
+      Icon: CheckCircle2,
+      label: 'التطبيق مثبت',
+      desc: 'التطبيق مثبت على هذا الجهاز',
+      disabled: true,
+      variant: 'installed',
+    };
+  }
+
+  if (installStatus === 'installable') {
+    return {
+      Icon: Download,
+      label: installing ? 'جاري التثبيت...' : 'تثبيت التطبيق',
+      desc: 'إضافة Win Gold للتوصيل إلى الشاشة الرئيسية',
+      disabled: installing,
+      variant: 'installable',
+    };
+  }
+
+  return {
+    Icon: Download,
+    label: 'تثبيت التطبيق',
+    desc: 'غير متاح من هذا المتصفح حالياً — استخدم Chrome أو Edge على Android أو Windows',
+    disabled: true,
+    variant: 'unavailable',
+  };
+}
+
 export default function Settings() {
-  const { canInstall, installing, promptInstall } = usePwaInstall();
+  const { installStatus, installing, promptInstall } = usePwaInstall();
+  const installRow = getInstallRow(installStatus, installing);
+  const InstallIcon = installRow.Icon;
 
   const { data: profile } = useQuery({
     queryKey: queryKeys.profile,
@@ -41,6 +74,7 @@ export default function Settings() {
   });
 
   const handleInstall = async () => {
+    if (installStatus !== 'installable' || installing) return;
     await promptInstall();
   };
 
@@ -65,21 +99,22 @@ export default function Settings() {
       )}
 
       <nav className="settings-links">
-        {canInstall && (
-          <button
-            type="button"
-            className="settings-link settings-link--rich settings-link--action"
-            onClick={handleInstall}
-            disabled={installing}
-          >
-            <span className="settings-link__icon"><Download size={20} /></span>
-            <span className="settings-link__text">
-              <strong>{installing ? 'جاري التثبيت...' : 'تثبيت التطبيق'}</strong>
-              <small>إضافة Win Gold للتوصيل إلى الشاشة الرئيسية</small>
-            </span>
+        <button
+          type="button"
+          className={`settings-link settings-link--rich settings-link--action settings-link--pwa settings-link--pwa-${installRow.variant}`}
+          onClick={handleInstall}
+          disabled={installRow.disabled}
+          aria-disabled={installRow.disabled}
+        >
+          <span className="settings-link__icon"><InstallIcon size={20} /></span>
+          <span className="settings-link__text">
+            <strong>{installRow.label}</strong>
+            <small>{installRow.desc}</small>
+          </span>
+          {installRow.variant === 'installable' && (
             <ChevronLeft size={18} className="settings-link__chevron" />
-          </button>
-        )}
+          )}
+        </button>
 
         {LINKS.map(({ to, icon: Icon, label, desc }) => (
           <Link key={to} to={to} className="settings-link settings-link--rich">

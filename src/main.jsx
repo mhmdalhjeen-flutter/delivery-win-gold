@@ -9,9 +9,11 @@ import NotificationListener from './components/NotificationListener';
 import PwaInstallPrompt from './components/PwaInstallPrompt';
 import PwaUpdateBanner from './components/PwaUpdateBanner';
 import { initPwaServiceWorker } from './pwa/registerServiceWorker';
+import { initPwaInstallCapture } from './pwa/pwaInstall.store';
 import './index.css';
 
 initPwaServiceWorker();
+initPwaInstallCapture();
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
