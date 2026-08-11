@@ -18,6 +18,8 @@ import {
 
   Camera,
 
+  Receipt,
+
 } from 'lucide-react';
 
 import { useQuery } from '@tanstack/react-query';
@@ -41,6 +43,7 @@ const LINKS = [
   { to: '/settings/pricing', icon: Tags, label: 'أسعار التوصيل', desc: 'السعر الأساسي والطلب الإضافي' },
 
   { to: '/settings/payment', icon: CreditCard, label: 'إعدادات الدفع', desc: 'طرق الدفع وحسابات التحويل' },
+  { to: '/settings/billing', icon: Receipt, label: 'الاشتراك الشهري', desc: 'فوترة الطلبات المسلّمة ودفع المنصة' },
 
   { to: '/settings/drivers', icon: Users, label: 'دليل السائقين', desc: 'إدارة السائقين المسجّلين — تفعيل وتعطيل' },
   { to: '/settings/driver-password', icon: Users, label: 'كلمة مرور تسجيل السائقين', desc: 'مشاركة مع السائقين للتسجيل الذاتي' },

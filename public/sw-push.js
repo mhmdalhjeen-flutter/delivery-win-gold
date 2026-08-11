@@ -66,6 +66,16 @@ function resolveDeliveryDeepLink(data = {}) {
       return '/requests';
     case 'push_test':
       return '/notifications';
+    case 'chat_message': {
+      const senderId = data.senderId != null ? String(data.senderId) : '';
+      const recipientRole = data.recipientRole != null ? String(data.recipientRole) : '';
+      if (recipientRole === 'delivery_driver') {
+        if (senderId) return `/driver/chat/${senderId}`;
+        return '/driver';
+      }
+      if (senderId) return `/chat/${senderId}`;
+      return '/chats';
+    }
     default:
       if (deliverySessionId) return `/requests/${deliverySessionId}`;
       break;

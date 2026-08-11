@@ -16,7 +16,10 @@ import StatCard from '../components/StatCard';
 
 import AppHeader from '../components/AppHeader';
 
+import DeliveryBrandHeader from '../components/DeliveryBrandHeader';
+
 import BottomNav from '../components/BottomNav';
+import BillingPaymentBanner from '../components/BillingPaymentBanner';
 
 
 
@@ -56,6 +59,8 @@ export default function Dashboard() {
 
         title={user?.name || 'شركة التوصيل'}
 
+        brand={<DeliveryBrandHeader />}
+
         actions={(
 
           <>
@@ -78,7 +83,7 @@ export default function Dashboard() {
 
       />
 
-
+      <BillingPaymentBanner />
 
       <section className="stats-grid">
 

@@ -5,6 +5,9 @@ import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { queryClient } from './lib/queryClient';
 import PushSubscriptionHost from './components/PushSubscriptionHost';
+import NotificationListener from './components/NotificationListener';
+import PwaInstallPrompt from './components/PwaInstallPrompt';
+import PwaUpdateBanner from './components/PwaUpdateBanner';
 import { initPwaServiceWorker } from './pwa/registerServiceWorker';
 import './index.css';
 
@@ -15,6 +18,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <PushSubscriptionHost />
+        <NotificationListener />
+        <PwaInstallPrompt />
+        <PwaUpdateBanner />
         <App />
       </AuthProvider>
     </QueryClientProvider>

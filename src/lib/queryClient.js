@@ -31,4 +31,6 @@ export const queryKeys = {
   driverRegistrationPassword: ['delivery', 'company', 'driver-registration-password'],
   deliveryProofs: (params) => ['delivery', 'company', 'proofs', params],
   deliveryProofFilterOptions: ['delivery', 'company', 'proofs', 'filter-options'],
+  companyBilling: ['delivery', 'company', 'billing'],
+  billingPaymentMethods: ['delivery', 'company', 'billing', 'payment-methods'],
 };

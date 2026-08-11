@@ -49,6 +49,8 @@ export default function AppHeader({
   eyebrow,
   leading = null,
   actions = null,
+  brand = null,
+  showIconLinks = true,
 }) {
   return (
     <header className="page-header">
@@ -61,8 +63,9 @@ export default function AppHeader({
         </div>
       </div>
       <div className="page-header__actions">
+        {brand && <div className="page-header__brand">{brand}</div>}
         {actions}
-        <HeaderIconLinks />
+        {showIconLinks ? <HeaderIconLinks /> : null}
       </div>
     </header>
   );

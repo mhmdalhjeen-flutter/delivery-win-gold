@@ -1,13 +1,35 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
+import { ChevronLeft, Loader2 } from 'lucide-react';
 import api from '../api/axios';
 import { queryKeys } from '../lib/queryClient';
 import SettingsPageLayout from '../components/SettingsPageLayout';
 
+function buildRegionTree(regions = []) {
+  const byParent = new Map();
+  const byId = new Map();
+
+  regions.forEach((region) => {
+    const id = String(region._id);
+    byId.set(id, region);
+    const parentKey = region.parent ? String(region.parent) : '';
+    if (!byParent.has(parentKey)) byParent.set(parentKey, []);
+    byParent.get(parentKey).push(region);
+  });
+
+  for (const list of byParent.values()) {
+    list.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name, 'ar'));
+  }
+
+  return { byParent, byId };
+}
+
 export default function Regions() {
   const qc = useQueryClient();
   const [saved, setSaved] = useState(false);
+  const [servesAll, setServesAll] = useState(false);
+  const [selected, setSelected] = useState([]);
+  const [pathIds, setPathIds] = useState([]);
 
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.regions,
@@ -17,15 +39,25 @@ export default function Regions() {
     },
   });
 
-  const [servesAll, setServesAll] = useState(false);
-  const [selected, setSelected] = useState([]);
-
   React.useEffect(() => {
     if (data) {
       setServesAll(Boolean(data.servesAllRegions));
       setSelected(data.servedRegionIds || []);
     }
   }, [data]);
+
+  const { byParent, byId } = useMemo(
+    () => buildRegionTree(data?.regions || []),
+    [data?.regions],
+  );
+
+  const rootRegions = byParent.get('') || [];
+
+  const currentLevelRegions = useMemo(() => {
+    if (pathIds.length === 0) return rootRegions;
+    const parentId = pathIds[pathIds.length - 1];
+    return byParent.get(parentId) || [];
+  }, [byParent, pathIds, rootRegions]);
 
   const save = useMutation({
     mutationFn: async () => {
@@ -43,16 +75,32 @@ export default function Regions() {
   });
 
   const toggleRegion = (id) => {
+    const key = String(id);
     setSelected((prev) => (
-      prev.includes(id) ? prev.filter((r) => r !== id) : [...prev, id]
+      prev.includes(key) ? prev.filter((r) => r !== key) : [...prev, key]
     ));
+  };
+
+  const drillInto = (region) => {
+    const id = String(region._id);
+    const children = byParent.get(id) || [];
+    if (children.length === 0) return;
+    setPathIds((prev) => [...prev, id]);
+  };
+
+  const goToCrumb = (index) => {
+    if (index < 0) {
+      setPathIds([]);
+      return;
+    }
+    setPathIds((prev) => prev.slice(0, index + 1));
   };
 
   if (isLoading) {
     return <SettingsPageLayout title="مناطق الخدمة"><p className="muted-center">جاري التحميل...</p></SettingsPageLayout>;
   }
 
-  const rootRegions = (data?.regions || []).filter((r) => !r.parent);
+  const crumbs = pathIds.map((id) => byId.get(id)).filter(Boolean);
 
   return (
     <SettingsPageLayout title="مناطق الخدمة" subtitle="توصية للزبائن فقط — تظهر كل الشركات النشطة">
@@ -72,21 +120,87 @@ export default function Regions() {
       </section>
 
       {!servesAll && (
-        <section className="panel">
-          <h2>المناطق المختارة</h2>
-          <div className="region-list">
-            {rootRegions.map((region) => (
-              <label key={region._id} className="toggle-row toggle-row--card">
-                <span>{region.name}</span>
-                <input
-                  type="checkbox"
-                  checked={selected.includes(String(region._id))}
-                  onChange={() => toggleRegion(String(region._id))}
-                />
-              </label>
-            ))}
-          </div>
-        </section>
+        <>
+          <section className="panel region-picker">
+            <h2>اختيار المناطق</h2>
+            <p className="form-hint">اختر منطقة رئيسية ثم انتقل للمستوى الأدق عند توفره.</p>
+
+            <nav className="region-breadcrumb" aria-label="مسار المناطق">
+              <button type="button" className="region-breadcrumb__item" onClick={() => goToCrumb(-1)}>
+                الكل
+              </button>
+              {crumbs.map((region, index) => (
+                <React.Fragment key={region._id}>
+                  <ChevronLeft size={14} className="region-breadcrumb__sep" aria-hidden />
+                  <button
+                    type="button"
+                    className="region-breadcrumb__item"
+                    onClick={() => goToCrumb(index)}
+                  >
+                    {region.name}
+                  </button>
+                </React.Fragment>
+              ))}
+            </nav>
+
+            <div className="region-list">
+              {currentLevelRegions.length === 0 && (
+                <p className="muted-center">لا توجد مناطق فرعية في هذا المستوى</p>
+              )}
+              {currentLevelRegions.map((region) => {
+                const id = String(region._id);
+                const hasChildren = (byParent.get(id) || []).length > 0;
+                const isChecked = selected.includes(id);
+
+                return (
+                  <div key={region._id} className="region-row">
+                    <label className="toggle-row toggle-row--card region-row__check">
+                      <span>{region.name}</span>
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleRegion(id)}
+                      />
+                    </label>
+                    {hasChildren && (
+                      <button
+                        type="button"
+                        className="region-row__drill"
+                        onClick={() => drillInto(region)}
+                      >
+                        التفاصيل
+                        <ChevronLeft size={16} />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {selected.length > 0 && (
+            <section className="panel">
+              <h2>المناطق المختارة ({selected.length})</h2>
+              <div className="region-selected-chips">
+                {selected.map((id) => {
+                  const region = byId.get(id);
+                  if (!region) return null;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      className="region-chip"
+                      onClick={() => toggleRegion(id)}
+                    >
+                      {region.name}
+                      <span aria-hidden>×</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+        </>
       )}
 
       <button
