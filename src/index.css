@@ -999,6 +999,19 @@ a {
   border-radius: 14px;
 }
 
+button.settings-link--action {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: inherit;
+}
+
+button.settings-link--action:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
 .settings-link span {
   flex: 1;
   font-weight: 700;

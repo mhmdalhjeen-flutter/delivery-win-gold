@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { queryKeys } from '../lib/queryClient';
 
-const PLATFORM_LOGO = '/brand/logo-192.png';
+const PLATFORM_LOGO = '/brand/win-goldenstore-logo-deleviry.png';
 
 export default function DeliveryBrandHeader({ className = '' }) {
   const { user } = useAuth();

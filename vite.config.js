@@ -2,10 +2,11 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
+const DELIVERY_APP_ICON = '/brand/win-goldenstore-logo-deleviry.png';
+
 const pwaIcons = [
-  { src: '/brand/logo-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-  { src: '/brand/logo-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-  { src: '/brand/logo-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+  { src: DELIVERY_APP_ICON, sizes: '363x347', type: 'image/png', purpose: 'any' },
+  { src: DELIVERY_APP_ICON, sizes: '363x347', type: 'image/png', purpose: 'maskable' },
 ];
 
 export default defineConfig({

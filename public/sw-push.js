@@ -3,7 +3,7 @@
  * Web Push handlers for the delivery PWA (company + driver roles).
  */
 
-const DEFAULT_ICON = '/brand/logo-192.png';
+const DEFAULT_ICON = '/brand/win-goldenstore-logo-deleviry.png';
 const DEFAULT_TITLE = 'Win Gold Delivery';
 const DEFAULT_URL = '/notifications';
 

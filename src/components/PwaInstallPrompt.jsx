@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Download, X } from 'lucide-react';
+import { usePwaInstall } from '../hooks/usePwaInstall';
 
 const DISMISS_KEY = 'delivery-pwa-install-dismissed-v1';
 
@@ -19,69 +20,36 @@ function markDismissed() {
   }
 }
 
-function isStandalone() {
-  return window.matchMedia('(display-mode: standalone)').matches
-    || window.navigator.standalone === true;
-}
-
 export default function PwaInstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [visible, setVisible] = useState(false);
-  const [installing, setInstalling] = useState(false);
+  const { canInstall, isInstalled, installing, promptInstall } = usePwaInstall();
+  const [dismissed, setDismissed] = useState(wasDismissed);
+  const visible = canInstall && !dismissed && !isInstalled;
 
   useEffect(() => {
-    if (isStandalone() || wasDismissed()) return undefined;
-
-    const onBeforeInstall = (event) => {
-      event.preventDefault();
-      setDeferredPrompt(event);
-      setVisible(true);
-    };
-
-    const onInstalled = () => {
-      setDeferredPrompt(null);
-      setVisible(false);
+    if (isInstalled) {
       markDismissed();
-    };
-
-    window.addEventListener('beforeinstallprompt', onBeforeInstall);
-    window.addEventListener('appinstalled', onInstalled);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', onBeforeInstall);
-      window.removeEventListener('appinstalled', onInstalled);
-    };
-  }, []);
+      setDismissed(true);
+    }
+  }, [isInstalled]);
 
   const dismiss = () => {
     markDismissed();
-    setVisible(false);
-    setDeferredPrompt(null);
+    setDismissed(true);
   };
 
   const install = async () => {
-    if (!deferredPrompt) return;
-    setInstalling(true);
-    try {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        markDismissed();
-        setVisible(false);
-      }
-      setDeferredPrompt(null);
-    } catch {
-      /* ignore */
-    } finally {
-      setInstalling(false);
+    const { outcome } = await promptInstall();
+    if (outcome === 'accepted') {
+      markDismissed();
+      setDismissed(true);
     }
   };
 
-  if (!visible || !deferredPrompt) return null;
+  if (!visible) return null;
 
   return (
     <div className="pwa-install-banner" dir="rtl">
-      <img src="/brand/logo-192.png" alt="" className="pwa-install-banner__logo" />
+      <img src="/brand/win-goldenstore-logo-deleviry.png" alt="" className="pwa-install-banner__logo" />
       <div className="pwa-install-banner__body">
         <strong>ثبّت تطبيق Win Gold للتوصيل</strong>
         <p>وصول أسرع للطلبات والإشعارات حتى عند إغلاق المتصفح.</p>
