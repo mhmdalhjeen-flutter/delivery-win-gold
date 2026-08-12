@@ -2641,3 +2641,81 @@ button.settings-link--pwa-unavailable .settings-link__text small {
   padding: 1.25rem;
   text-align: center;
 }
+
+.billing-page--compact {
+  gap: 12px;
+}
+
+.billing-inline-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.billing-chip {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.billing-chip--current {
+  border: 1px solid #bfdbfe;
+}
+
+.billing-invoice-card {
+  width: fit-content;
+  max-width: 100%;
+  background: #fff;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.billing-invoice-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.billing-invoice-card__head strong {
+  font-size: 0.95rem;
+}
+
+.billing-invoice-card__total {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #1d4ed8;
+}
+
+.billing-invoice-card__meta,
+.billing-invoice-card__status {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.billing-card--compact {
+  padding: 12px 14px;
+}
+
+.billing-methods--compact {
+  gap: 8px;
+}
+
+.billing-method__qr {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  margin-top: 6px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}

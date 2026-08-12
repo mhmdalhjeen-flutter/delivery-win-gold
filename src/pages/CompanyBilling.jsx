@@ -9,12 +9,6 @@ import BottomNav from '../components/BottomNav';
 import { fileToCompressedDataUrl } from '../utils/imageUpload';
 import { formatPrice } from '../utils/tripHelpers';
 
-const PAYMENT_LABELS = {
-  bank_palestine: 'بنك',
-  palpay: 'محفظة',
-  jawwal_pay: 'جوال بي',
-};
-
 const EMPTY_TRANSFER = {
   transferName: '',
   transferPhone: '',
@@ -32,6 +26,12 @@ function statusLabel(status) {
     exempted: 'معفى',
   };
   return map[status] || status || '—';
+}
+
+function hasPaymentProof(payment, transfer, receipt, mode) {
+  if (mode === 'receipt') return Boolean(receipt);
+  const ti = transfer || {};
+  return Boolean(String(ti.transferName || '').trim() || String(ti.transferNumber || '').trim());
 }
 
 export default function CompanyBilling() {
@@ -54,13 +54,14 @@ export default function CompanyBilling() {
     staleTime: 20 * 1000,
   });
 
+  const needsMethods = step === 'methods' || step === 'pay' || Boolean(billing?.needsPayment);
   const { data: methodsData } = useQuery({
     queryKey: queryKeys.billingPaymentMethods,
     queryFn: async () => {
       const { data } = await api.get('/delivery/company/billing/payment-methods');
       return data;
     },
-    enabled: step === 'methods' || step === 'pay',
+    enabled: needsMethods,
     staleTime: 60 * 1000,
   });
 
@@ -68,6 +69,7 @@ export default function CompanyBilling() {
   const openPeriod = billing?.openPeriod;
   const payablePeriod = openPeriod || billing?.previousPeriod;
   const currency = billing?.currency || 'ILS';
+  const currentCount = billing?.currentPeriod?.deliveredOrderCount ?? 0;
 
   useEffect(() => {
     if (!billing) return;
@@ -88,21 +90,27 @@ export default function CompanyBilling() {
 
     if (billing.paymentRejected) {
       setStep('pay');
-      if (payment.paymentMethod) setSelectedMethod({ type: payment.paymentMethod });
+      if (payment.paymentMethod) {
+        const match = methods.find((m) => m.type === payment.paymentMethod);
+        setSelectedMethod(match || { type: payment.paymentMethod, label: payment.paymentMethod });
+      }
     } else if (billing.paymentPending) {
       setStep('pending');
     } else if (billing.needsPayment) {
       setStep('overview');
     }
-  }, [billing]);
+  }, [billing, methods]);
 
   const billSummary = useMemo(() => {
     if (!payablePeriod) return null;
+    const count = payablePeriod.deliveredOrderCount ?? 0;
+    const price = payablePeriod.pricePerOrder ?? billing?.pricePerOrder ?? 1;
     return {
       monthLabel: payablePeriod.monthLabel || payablePeriod.monthKey,
-      count: payablePeriod.deliveredOrderCount ?? 0,
-      price: payablePeriod.pricePerOrder ?? billing?.pricePerOrder ?? 1,
-      total: payablePeriod.amountDue ?? 0,
+      count,
+      price,
+      total: payablePeriod.amountDue ?? count * price,
+      status: payablePeriod.status,
     };
   }, [payablePeriod, billing?.pricePerOrder]);
 
@@ -121,6 +129,10 @@ export default function CompanyBilling() {
   const handleSubmit = async () => {
     if (!selectedMethod?.type) {
       showToast('اختر طريقة الدفع', true);
+      return;
+    }
+    if (!hasPaymentProof(billing?.payment, transfer, receipt, paymentMode)) {
+      showToast('يرجى رفع إشعار الدفع أو إدخال بيانات التحويل', true);
       return;
     }
     setSubmitting(true);
@@ -170,35 +182,28 @@ export default function CompanyBilling() {
         <div className={`billing-toast${toast.isError ? ' billing-toast--error' : ''}`}>{toast.text}</div>
       )}
 
-      <div className="billing-page">
-        <section className="billing-card">
-          <h2>ملخص الفوترة</h2>
-          <div className="billing-grid">
-            <div>
-              <span>الشهر الحالي</span>
-              <strong>{billing?.currentMonthLabel || billing?.currentMonthKey}</strong>
-            </div>
-            <div>
-              <span>طلبات هذا الشهر</span>
-              <strong>{billing?.currentPeriod?.deliveredOrderCount ?? 0}</strong>
-            </div>
-            <div>
-              <span>الشهر السابق</span>
-              <strong>{billing?.previousMonthLabel || billing?.previousMonthKey}</strong>
-            </div>
-            <div>
-              <span>سعر / طلب</span>
-              <strong>{formatPrice(billing?.pricePerOrder ?? 1, currency)}</strong>
-            </div>
-          </div>
-        </section>
+      <div className="billing-page billing-page--compact">
+        <div className="billing-inline-stats">
+          <span className="billing-chip billing-chip--current">
+            {billing?.currentMonthLabel || billing?.currentMonthKey}
+            {' · '}
+            {currentCount.toLocaleString('ar-EG')} توصيلة
+          </span>
+        </div>
 
-        {billSummary && (
-          <section className="billing-card billing-card--highlight">
-            <h3>فاتورة {billSummary.monthLabel}</h3>
-            <p>{billSummary.count} طلب × {formatPrice(billSummary.price, currency)}</p>
-            <p className="billing-total">الإجمالي: {formatPrice(billSummary.total, currency)}</p>
-            <p className="billing-status">الحالة: {statusLabel(payablePeriod?.status)}</p>
+        {billSummary && billing?.needsPayment && (
+          <section className="billing-invoice-card">
+            <div className="billing-invoice-card__head">
+              <strong>{billSummary.monthLabel}</strong>
+              <span>{billSummary.count.toLocaleString('ar-EG')} توصيلة</span>
+            </div>
+            <p className="billing-invoice-card__total">
+              {formatPrice(billSummary.total, currency)}
+            </p>
+            <p className="billing-invoice-card__meta">
+              {billSummary.count} × {formatPrice(billSummary.price, currency)}
+            </p>
+            <p className="billing-invoice-card__status">{statusLabel(billSummary.status)}</p>
             {billing?.payment?.rejectionReason && (
               <p className="billing-reject-reason">{billing.payment.rejectionReason}</p>
             )}
@@ -211,10 +216,10 @@ export default function CompanyBilling() {
           </button>
         )}
 
-        {step === 'methods' && (
-          <section className="billing-card">
-            <h3>اختر طريقة الدفع</h3>
-            <div className="billing-methods">
+        {step === 'methods' && billing?.needsPayment && !billing?.paymentPending && (
+          <section className="billing-card billing-card--compact">
+            <h3>طرق الدفع المتاحة</h3>
+            <div className="billing-methods billing-methods--compact">
               {methods.map((method) => (
                 <button
                   key={method._id}
@@ -222,18 +227,22 @@ export default function CompanyBilling() {
                   className={`billing-method${selectedMethod?._id === method._id ? ' billing-method--active' : ''}`}
                   onClick={() => { setSelectedMethod(method); setStep('pay'); }}
                 >
-                  <strong>{PAYMENT_LABELS[method.type] || method.label}</strong>
+                  <strong>{method.label}</strong>
                   <span dir="ltr">{method.accountNumber}</span>
                   <span>{method.accountName}</span>
+                  {method.barcodeImage && (
+                    <img src={method.barcodeImage} alt={method.label} className="billing-method__qr" />
+                  )}
                 </button>
               ))}
             </div>
+            {!methods.length && <p className="muted-center">لا توجد طرق دفع مفعّلة حالياً</p>}
           </section>
         )}
 
         {step === 'pay' && selectedMethod && (
-          <section className="billing-card">
-            <h3>بيانات الدفع — {PAYMENT_LABELS[selectedMethod.type] || selectedMethod.label}</h3>
+          <section className="billing-card billing-card--compact">
+            <h3>إرسال الدفع — {selectedMethod.label}</h3>
             <div className="billing-mode-toggle">
               <button type="button" className={paymentMode === 'receipt' ? 'active' : ''} onClick={() => setPaymentMode('receipt')}>
                 <Receipt size={16} /> إشعار
@@ -268,7 +277,7 @@ export default function CompanyBilling() {
         )}
 
         {step === 'pending' && (
-          <section className="billing-card billing-card--pending">
+          <section className="billing-card billing-card--pending billing-card--compact">
             <h3>الدفع قيد المراجعة</h3>
             <p>تم استلام بيانات الدفع. يمكنك متابعة العمل — سنُعلمك عند الاعتماد.</p>
             <Link to="/" className="billing-secondary-btn">العودة للرئيسية</Link>
@@ -276,8 +285,8 @@ export default function CompanyBilling() {
         )}
 
         {!billing?.needsPayment && !billing?.paymentPending && !billing?.paymentRejected && (
-          <section className="billing-card billing-card--ok">
-            <p>لا توجد فاتورة مستحقة حالياً. دورة {billing?.currentMonthLabel} قيد العد.</p>
+          <section className="billing-card billing-card--ok billing-card--compact">
+            <p>لا توجد فاتورة مستحقة. دورة {billing?.currentMonthLabel} قيد العد.</p>
           </section>
         )}
       </div>
