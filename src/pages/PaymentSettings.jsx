@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
 import api from '../api/axios';
 import { queryKeys } from '../lib/queryClient';
+import { useSettingsQuery, isSettingsLoading } from '../hooks/useSettingsQuery';
 import SettingsPageLayout from '../components/SettingsPageLayout';
 import PaymentAccountFormModal from '../components/PaymentAccountFormModal';
 import {
@@ -21,7 +22,7 @@ export default function PaymentSettings() {
   const [deletingId, setDeletingId] = useState(null);
   const [message, setMessage] = useState('');
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useSettingsQuery({
     queryKey: queryKeys.paymentSettings,
     queryFn: async () => {
       const { data: res } = await api.get('/delivery/company/payment-settings');
@@ -108,7 +109,7 @@ export default function PaymentSettings() {
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.paymentSettings }),
   });
 
-  if (isLoading) {
+  if (isSettingsLoading(isLoading, data)) {
     return (
       <SettingsPageLayout title="إعدادات الدفع">
         <p className="muted-center">جاري التحميل...</p>

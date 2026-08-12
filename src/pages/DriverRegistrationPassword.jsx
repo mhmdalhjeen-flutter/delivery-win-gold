@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import api from '../api/axios';
 import { queryKeys } from '../lib/queryClient';
+import { useSettingsQuery } from '../hooks/useSettingsQuery';
 import SettingsPageLayout from '../components/SettingsPageLayout';
 
 export default function DriverRegistrationPassword() {
@@ -11,7 +12,7 @@ export default function DriverRegistrationPassword() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [saved, setSaved] = useState(false);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useSettingsQuery({
     queryKey: queryKeys.driverRegistrationPassword,
     queryFn: async () => {
       const { data: res } = await api.get('/delivery/company/driver-registration-password');

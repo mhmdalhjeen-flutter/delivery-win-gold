@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import api from '../api/axios';
 import { queryKeys } from '../lib/queryClient';
+import { useSettingsQuery, isSettingsLoading } from '../hooks/useSettingsQuery';
 import SettingsPageLayout from '../components/SettingsPageLayout';
 import { formatPrice } from '../utils/tripHelpers';
 
@@ -11,7 +12,7 @@ export default function Pricing() {
   const [form, setForm] = useState({ basePrice: '', extraOrderPrice: '', currency: 'ILS' });
   const [saved, setSaved] = useState(false);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useSettingsQuery({
     queryKey: queryKeys.pricing,
     queryFn: async () => {
       const { data: res } = await api.get('/delivery/company/pricing');
@@ -49,7 +50,7 @@ export default function Pricing() {
   const previewExtra = Number(form.extraOrderPrice) || 0;
   const sample3 = previewBase + previewExtra * 2;
 
-  if (isLoading) {
+  if (isSettingsLoading(isLoading, data)) {
     return <SettingsPageLayout title="أسعار التوصيل"><p className="muted-center">جاري التحميل...</p></SettingsPageLayout>;
   }
 
