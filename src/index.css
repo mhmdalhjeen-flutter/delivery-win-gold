@@ -157,6 +157,82 @@ a {
   height: 64px;
 }
 
+.settings-company__logo--lg {
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+}
+
+.company-logo-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.company-logo-upload__hint {
+  margin: 0;
+}
+
+.company-logo-upload__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.company-logo-upload__preview-wrap {
+  flex-shrink: 0;
+}
+
+.company-logo-upload__preview,
+.company-logo-upload__placeholder {
+  width: 112px;
+  height: 112px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  object-fit: cover;
+}
+
+.company-logo-upload__placeholder {
+  display: grid;
+  place-items: center;
+  background: #eff6ff;
+  color: var(--primary);
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.company-logo-upload__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: min(100%, 220px);
+}
+
+.company-logo-upload__btn {
+  width: fit-content;
+  max-width: 100%;
+}
+
+@media (max-width: 480px) {
+  .company-logo-upload__row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .company-logo-upload__preview,
+  .company-logo-upload__placeholder {
+    width: 96px;
+    height: 96px;
+  }
+
+  .company-logo-upload__btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 .settings-company__icon--lg {
   border-radius: 14px;
   background: #eff6ff;
@@ -1738,6 +1814,40 @@ button.settings-link--pwa-unavailable .settings-link__text small {
   background: #ecfdf5;
   color: #047857;
   border-color: #a7f3d0;
+}
+
+.driver-reminder-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  margin: 0 16px 12px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.driver-reminder-banner__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.driver-reminder-banner__text strong {
+  font-size: 0.84rem;
+}
+
+.driver-reminder-banner__text span {
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.driver-reminder-banner__close {
+  flex-shrink: 0;
 }
 
 .driver-assignment-list {

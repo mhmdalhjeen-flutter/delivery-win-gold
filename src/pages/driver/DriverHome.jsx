@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { LogOut, MapPin, Phone, RefreshCw, User, WifiOff } from 'lucide-react';
+import { AlertCircle, LogOut, MapPin, Phone, RefreshCw, User, WifiOff, X } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import { queryKeys } from '../../lib/queryClient';
@@ -14,6 +14,7 @@ export default function DriverHome() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { pendingCount, syncing, syncQueue } = useOfflineSync(true);
+  const [dismissedReminderIds, setDismissedReminderIds] = useState([]);
 
   const { data: assignments = [], isLoading, refetch, isFetching } = useQuery({
     queryKey: queryKeys.driverAssignments,
@@ -23,6 +24,29 @@ export default function DriverHome() {
     },
     refetchInterval: 8_000,
   });
+
+  const { data: pendingConfirmations = [], refetch: refetchPending } = useQuery({
+    queryKey: queryKeys.driverPendingConfirmations,
+    queryFn: async () => {
+      const { data } = await api.get('/delivery/driver/pending-confirmations');
+      return data.pending || [];
+    },
+    refetchInterval: 60_000,
+    enabled: navigator.onLine,
+  });
+
+  useEffect(() => {
+    const onOnline = () => {
+      refetchPending();
+    };
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  }, [refetchPending]);
+
+  const visibleReminders = pendingConfirmations.filter(
+    (item) => !dismissedReminderIds.includes(item.handoverId),
+  );
+  const activeReminder = visibleReminders[0] || null;
 
   return (
     <div className="app-shell app-shell--driver">
@@ -45,6 +69,40 @@ export default function DriverHome() {
         <div className="offline-banner">
           <WifiOff size={16} />
           <span>لا يوجد اتصال — يمكنك تأكيد التسليم وسيتم المزامنة تلقائياً</span>
+        </div>
+      )}
+
+      {activeReminder && (
+        <div className="driver-reminder-banner" role="status">
+          <AlertCircle size={18} />
+          <div className="driver-reminder-banner__text">
+            <strong>
+              الطلب #
+              {activeReminder.orderNumber || '—'}
+              {' '}
+              لم يُؤكَّد بعد
+            </strong>
+            <span>يرجى تأكيد التسليم</span>
+          </div>
+          <button
+            type="button"
+            className="btn-ghost-sm"
+            onClick={() => {
+              if (activeReminder.sessionId) {
+                navigate(`/driver/delivery/${activeReminder.sessionId}`);
+              }
+            }}
+          >
+            فتح الطلب
+          </button>
+          <button
+            type="button"
+            className="icon-btn driver-reminder-banner__close"
+            aria-label="إخفاء"
+            onClick={() => setDismissedReminderIds((ids) => [...ids, activeReminder.handoverId])}
+          >
+            <X size={16} />
+          </button>
         </div>
       )}
 
