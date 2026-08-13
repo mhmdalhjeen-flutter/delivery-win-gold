@@ -8,6 +8,8 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 
 import App from './App';
 
+import ErrorBoundary from './shared/ErrorBoundary';
+
 import { AuthProvider } from './context/AuthContext';
 
 import { PwaInstallProvider } from './context/PwaInstallContext';
@@ -60,6 +62,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 
   <React.StrictMode>
 
+    <ErrorBoundary homePath="/login" homeLabel="العودة لتسجيل الدخول">
+
     <PersistQueryClientProvider
 
       client={queryClient}
@@ -91,6 +95,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       </PwaInstallProvider>
 
     </PersistQueryClientProvider>
+
+    </ErrorBoundary>
 
   </React.StrictMode>,
 

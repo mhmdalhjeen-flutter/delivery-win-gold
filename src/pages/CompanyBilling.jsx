@@ -8,6 +8,7 @@ import AppHeader from '../components/AppHeader';
 import BottomNav from '../components/BottomNav';
 import { fileToCompressedDataUrl } from '../utils/imageUpload';
 import { formatPrice } from '../utils/tripHelpers';
+import QueryErrorState from '../shared/QueryErrorState';
 
 const EMPTY_TRANSFER = {
   transferName: '',
@@ -45,7 +46,7 @@ export default function CompanyBilling() {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState('');
 
-  const { data: billing, isLoading, refetch } = useQuery({
+  const { data: billing, isLoading, isError, error, refetch } = useQuery({
     queryKey: queryKeys.companyBilling,
     queryFn: async () => {
       const { data } = await api.get('/delivery/company/billing');
@@ -162,6 +163,17 @@ export default function CompanyBilling() {
       <div className="app-shell">
         <AppHeader title="الاشتراك الشهري" />
         <div className="billing-loading"><Loader2 className="spin" size={28} /></div>
+        <BottomNav />
+      </div>
+    );
+  }
+
+  if (isError) {
+    const message = error?.response?.data?.message || 'تعذّر تحميل بيانات الاشتراك';
+    return (
+      <div className="app-shell">
+        <AppHeader title="الاشتراك الشهري" />
+        <QueryErrorState message={message} onRetry={() => refetch()} />
         <BottomNav />
       </div>
     );

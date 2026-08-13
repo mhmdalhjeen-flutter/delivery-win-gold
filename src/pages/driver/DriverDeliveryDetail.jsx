@@ -7,6 +7,7 @@ import { queryKeys } from '../../lib/queryClient';
 import { queueDeliveryCompletion } from '../../lib/offlineDeliveryQueue';
 import useOfflineSync from '../../hooks/useOfflineSync';
 import ContactActions from '../../components/ContactActions';
+import QueryErrorState from '../../shared/QueryErrorState';
 import { fileToCompressedDataUrl } from '../../utils/imageUpload';
 
 export default function DriverDeliveryDetail() {
@@ -24,7 +25,7 @@ export default function DriverDeliveryDetail() {
   const [compressing, setCompressing] = useState(false);
   const { refreshCount } = useOfflineSync(true);
 
-  const { data: assignment, isLoading } = useQuery({
+  const { data: assignment, isLoading, isError, error, refetch } = useQuery({
     queryKey: queryKeys.driverAssignment(assignmentId),
     queryFn: async () => {
       const { data } = await api.get(`/delivery/driver/assignments/${assignmentId}`);
@@ -121,8 +122,17 @@ export default function DriverDeliveryDetail() {
     }
   };
 
-  if (isLoading || !assignment) {
+  if (isLoading) {
     return <div className="app-shell"><p className="muted-center">جاري التحميل...</p></div>;
+  }
+
+  if (isError || !assignment) {
+    const message = error?.response?.data?.message || 'تعذّر تحميل تفاصيل التوصيل';
+    return (
+      <div className="app-shell">
+        <QueryErrorState message={message} onRetry={() => refetch()} />
+      </div>
+    );
   }
 
   return (

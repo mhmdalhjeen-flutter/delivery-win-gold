@@ -8,6 +8,7 @@ import ContactActions from '../components/ContactActions';
 import StoreStopCard from '../components/StoreStopCard';
 import AssignDriverModal from '../components/AssignDriverModal';
 import { HeaderIconLinks } from '../components/AppHeader';
+import QueryErrorState from '../shared/QueryErrorState';
 import {
   REQUEST_STATUS_LABELS,
   REQUEST_STATUS_COLORS,
@@ -29,7 +30,7 @@ export default function RequestDetails() {
   const [rejectReason, setRejectReason] = useState('');
   const [assignOpen, setAssignOpen] = useState(false);
 
-  const { data: request, isLoading } = useQuery({
+  const { data: request, isLoading, isError, error, refetch } = useQuery({
     queryKey: queryKeys.request(requestId),
     queryFn: async () => {
       const { data } = await api.get(`/delivery/company/requests/${requestId}`);
@@ -59,8 +60,17 @@ export default function RequestDetails() {
     },
   });
 
-  if (isLoading || !request) {
+  if (isLoading) {
     return <div className="app-shell"><p className="muted-center">جاري التحميل...</p></div>;
+  }
+
+  if (isError || !request) {
+    const message = error?.response?.data?.message || 'تعذّر تحميل تفاصيل الطلب';
+    return (
+      <div className="app-shell">
+        <QueryErrorState message={message} onRetry={() => refetch()} />
+      </div>
+    );
   }
 
   const isCash = request.paymentMethod === 'cash_on_delivery';
