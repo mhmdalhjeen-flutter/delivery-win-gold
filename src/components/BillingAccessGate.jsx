@@ -15,7 +15,7 @@ export default function BillingAccessGate({ children }) {
       const { data } = await api.get('/delivery/company/billing');
       return data;
     },
-    staleTime: 20 * 1000,
+    staleTime: 0,
     retry: false,
   });
 

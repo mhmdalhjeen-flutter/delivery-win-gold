@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Receipt, Upload } from 'lucide-react';
 import api from '../api/axios';
 import { queryKeys } from '../lib/queryClient';
+import { syncCompanyBillingCache } from '../lib/billingQuerySync';
 import AppHeader from '../components/AppHeader';
 import BottomNav from '../components/BottomNav';
 import { fileToCompressedDataUrl } from '../utils/imageUpload';
@@ -43,8 +44,6 @@ export default function CompanyBilling() {
   const [transfer, setTransfer] = useState(EMPTY_TRANSFER);
   const [receipt, setReceipt] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [simulating, setSimulating] = useState(false);
-  const [resettingSim, setResettingSim] = useState(false);
   const [toast, setToast] = useState('');
 
   const { data: billing, isLoading, isError, error, refetch } = useQuery({
@@ -53,7 +52,7 @@ export default function CompanyBilling() {
       const { data } = await api.get('/delivery/company/billing');
       return data;
     },
-    staleTime: 20 * 1000,
+    staleTime: 0,
   });
 
   const needsMethods = step === 'methods' || step === 'pay' || Boolean(billing?.needsPayment);
@@ -73,7 +72,6 @@ export default function CompanyBilling() {
   const currency = billing?.currency || 'ILS';
   const currentCount = billing?.currentPeriod?.deliveredOrderCount ?? 0;
   const mandatory = Boolean(billing?.needsPayment);
-  const showSimulationControls = Boolean(billing?.simulationAvailable);
 
   useEffect(() => {
     if (!billing) return;
@@ -142,7 +140,7 @@ export default function CompanyBilling() {
     }
     setSubmitting(true);
     try {
-      await api.post('/delivery/company/billing/payment', {
+      const { data } = await api.post('/delivery/company/billing/payment', {
         periodId: payablePeriod?._id,
         paymentMethod: selectedMethod.type,
         transferName: transfer.transferName,
@@ -151,40 +149,13 @@ export default function CompanyBilling() {
         paymentNotes: transfer.paymentNotes,
         paymentProof: paymentMode === 'receipt' ? receipt : '',
       });
-      showToast('تم إرسال الدفع — قيد المراجعة');
+      showToast(data?.message || 'تم إرسال الدفع — قيد المراجعة');
       setStep('pending');
-      await refetch();
-      queryClient.invalidateQueries({ queryKey: queryKeys.companyBilling });
+      await syncCompanyBillingCache(queryClient, data);
     } catch (err) {
       showToast(err.response?.data?.message || 'تعذّر إرسال الدفع', true);
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleStartSimulation = async () => {
-    setSimulating(true);
-    try {
-      await api.post('/delivery/company/billing/simulation/start');
-      await queryClient.invalidateQueries({ queryKey: queryKeys.companyBilling });
-      showToast('تم بدء محاكاة بداية شهر جديد');
-    } catch (err) {
-      showToast(err.response?.data?.message || 'تعذّر بدء المحاكاة', true);
-    } finally {
-      setSimulating(false);
-    }
-  };
-
-  const handleResetSimulation = async () => {
-    setResettingSim(true);
-    try {
-      await api.delete('/delivery/company/billing/simulation');
-      await queryClient.invalidateQueries({ queryKey: queryKeys.companyBilling });
-      showToast('تم حذف المحاكاة واستعادة الحالة الحقيقية');
-    } catch (err) {
-      showToast(err.response?.data?.message || 'تعذّر حذف المحاكاة', true);
-    } finally {
-      setResettingSim(false);
     }
   };
 
@@ -220,14 +191,14 @@ export default function CompanyBilling() {
       <div className="billing-page billing-page--compact">
         {mandatory && !billing?.paymentRejected && (
           <section className="billing-alert billing-alert--new-month">
-            <h2>شهر جديد — عليك تسديد المبلغ المستحق</h2>
+            <h2>انتهى الشهر، يرجى تسديد الاشتراك الشهري</h2>
             <p>يرجى إتمام دفع فاتورة الشهر السابق للمتابعة في استخدام بوابة التوصيل.</p>
           </section>
         )}
 
         {mandatory && billing?.paymentRejected && (
           <section className="billing-alert billing-alert--rejected">
-            <h2>يرجى التحقق من حالة الدفع وإعادة المحاولة</h2>
+            <h2>تعذر التحقق من الدفع، يرجى مراجعة حالة الدفع وإعادة إرسال بيانات الدفع.</h2>
             {billing?.payment?.rejectionReason && (
               <p className="billing-reject-reason">{billing.payment.rejectionReason}</p>
             )}
@@ -338,36 +309,6 @@ export default function CompanyBilling() {
         {!mandatory && !billing?.paymentPending && (
           <section className="billing-card billing-card--ok billing-card--compact">
             <p>لا توجد فاتورة مستحقة. دورة {billing?.currentMonthLabel} قيد العد.</p>
-          </section>
-        )}
-
-        {showSimulationControls && (
-          <section className="billing-card billing-card--simulation billing-card--compact">
-            <h3>أدوات التطوير — محاكاة الفوترة</h3>
-            <p className="billing-instructions">
-              هذه الأدوات للاختبار فقط ولا تغيّر بيانات الفوترة الحقيقية.
-            </p>
-            {billing?.simulationActive && (
-              <p className="billing-simulation-active">المحاكاة نشطة حالياً</p>
-            )}
-            <button
-              type="button"
-              className="billing-secondary-btn"
-              disabled={simulating || billing?.simulationActive}
-              onClick={handleStartSimulation}
-            >
-              {simulating ? 'جاري البدء...' : 'محاكاة بداية شهر جديد'}
-            </button>
-            {billing?.simulationActive && (
-              <button
-                type="button"
-                className="billing-danger-btn"
-                disabled={resettingSim}
-                onClick={handleResetSimulation}
-              >
-                {resettingSim ? 'جاري الحذف...' : 'حذف المحاكاة وإعادة الحالة'}
-              </button>
-            )}
           </section>
         )}
       </div>
