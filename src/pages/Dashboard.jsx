@@ -19,7 +19,6 @@ import AppHeader from '../components/AppHeader';
 import DeliveryBrandHeader from '../components/DeliveryBrandHeader';
 
 import BottomNav from '../components/BottomNav';
-import BillingPaymentBanner from '../components/BillingPaymentBanner';
 
 
 
@@ -82,8 +81,6 @@ export default function Dashboard() {
         )}
 
       />
-
-      <BillingPaymentBanner />
 
       <section className="stats-grid">
 

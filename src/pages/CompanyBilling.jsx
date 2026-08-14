@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, Loader2, Receipt, Upload } from 'lucide-react';
+import { Loader2, Receipt, Upload } from 'lucide-react';
 import api from '../api/axios';
 import { queryKeys } from '../lib/queryClient';
 import AppHeader from '../components/AppHeader';
@@ -36,7 +36,6 @@ function hasPaymentProof(payment, transfer, receipt, mode) {
 }
 
 export default function CompanyBilling() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [step, setStep] = useState('overview');
   const [selectedMethod, setSelectedMethod] = useState(null);
@@ -44,6 +43,8 @@ export default function CompanyBilling() {
   const [transfer, setTransfer] = useState(EMPTY_TRANSFER);
   const [receipt, setReceipt] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [simulating, setSimulating] = useState(false);
+  const [resettingSim, setResettingSim] = useState(false);
   const [toast, setToast] = useState('');
 
   const { data: billing, isLoading, isError, error, refetch } = useQuery({
@@ -71,6 +72,8 @@ export default function CompanyBilling() {
   const payablePeriod = openPeriod || billing?.previousPeriod;
   const currency = billing?.currency || 'ILS';
   const currentCount = billing?.currentPeriod?.deliveredOrderCount ?? 0;
+  const mandatory = Boolean(billing?.needsPayment);
+  const showSimulationControls = Boolean(billing?.simulationAvailable);
 
   useEffect(() => {
     if (!billing) return;
@@ -98,7 +101,7 @@ export default function CompanyBilling() {
     } else if (billing.paymentPending) {
       setStep('pending');
     } else if (billing.needsPayment) {
-      setStep('overview');
+      setStep('methods');
     }
   }, [billing, methods]);
 
@@ -108,6 +111,7 @@ export default function CompanyBilling() {
     const price = payablePeriod.pricePerOrder ?? billing?.pricePerOrder ?? 1;
     return {
       monthLabel: payablePeriod.monthLabel || payablePeriod.monthKey,
+      monthKey: payablePeriod.monthKey,
       count,
       price,
       total: payablePeriod.amountDue ?? count * price,
@@ -158,6 +162,32 @@ export default function CompanyBilling() {
     }
   };
 
+  const handleStartSimulation = async () => {
+    setSimulating(true);
+    try {
+      await api.post('/delivery/company/billing/simulation/start');
+      await queryClient.invalidateQueries({ queryKey: queryKeys.companyBilling });
+      showToast('تم بدء محاكاة بداية شهر جديد');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'تعذّر بدء المحاكاة', true);
+    } finally {
+      setSimulating(false);
+    }
+  };
+
+  const handleResetSimulation = async () => {
+    setResettingSim(true);
+    try {
+      await api.delete('/delivery/company/billing/simulation');
+      await queryClient.invalidateQueries({ queryKey: queryKeys.companyBilling });
+      showToast('تم حذف المحاكاة واستعادة الحالة الحقيقية');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'تعذّر حذف المحاكاة', true);
+    } finally {
+      setResettingSim(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="app-shell">
@@ -181,56 +211,63 @@ export default function CompanyBilling() {
 
   return (
     <div className="app-shell app-shell--billing">
-      <AppHeader
-        title="الاشتراك الشهري"
-        left={(
-          <button type="button" className="icon-btn" onClick={() => navigate('/settings')} aria-label="رجوع">
-            <ChevronLeft size={22} />
-          </button>
-        )}
-      />
+      <AppHeader title="الاشتراك الشهري" />
 
       {toast.text && (
         <div className={`billing-toast${toast.isError ? ' billing-toast--error' : ''}`}>{toast.text}</div>
       )}
 
       <div className="billing-page billing-page--compact">
-        <div className="billing-inline-stats">
-          <span className="billing-chip billing-chip--current">
-            {billing?.currentMonthLabel || billing?.currentMonthKey}
-            {' · '}
-            {currentCount.toLocaleString('ar-EG')} توصيلة
-          </span>
-        </div>
+        {mandatory && !billing?.paymentRejected && (
+          <section className="billing-alert billing-alert--new-month">
+            <h2>شهر جديد — عليك تسديد المبلغ المستحق</h2>
+            <p>يرجى إتمام دفع فاتورة الشهر السابق للمتابعة في استخدام بوابة التوصيل.</p>
+          </section>
+        )}
 
-        {billSummary && billing?.needsPayment && (
-          <section className="billing-invoice-card">
-            <div className="billing-invoice-card__head">
-              <strong>{billSummary.monthLabel}</strong>
-              <span>{billSummary.count.toLocaleString('ar-EG')} توصيلة</span>
-            </div>
-            <p className="billing-invoice-card__total">
-              {formatPrice(billSummary.total, currency)}
-            </p>
-            <p className="billing-invoice-card__meta">
-              {billSummary.count} × {formatPrice(billSummary.price, currency)}
-            </p>
-            <p className="billing-invoice-card__status">{statusLabel(billSummary.status)}</p>
+        {mandatory && billing?.paymentRejected && (
+          <section className="billing-alert billing-alert--rejected">
+            <h2>يرجى التحقق من حالة الدفع وإعادة المحاولة</h2>
             {billing?.payment?.rejectionReason && (
               <p className="billing-reject-reason">{billing.payment.rejectionReason}</p>
             )}
           </section>
         )}
 
-        {step === 'overview' && billing?.needsPayment && (
-          <button type="button" className="billing-primary-btn" onClick={() => setStep('methods')}>
-            متابعة الدفع
-          </button>
+        {!mandatory && (
+          <div className="billing-inline-stats">
+            <span className="billing-chip billing-chip--current">
+              {billing?.currentMonthLabel || billing?.currentMonthKey}
+              {' · '}
+              {currentCount.toLocaleString('ar-EG')} توصيلة
+            </span>
+          </div>
         )}
 
-        {step === 'methods' && billing?.needsPayment && !billing?.paymentPending && (
+        {billSummary && mandatory && (
+          <section className="billing-invoice-card">
+            <p className="billing-invoice-card__label">الشهر السابق</p>
+            <div className="billing-invoice-card__head">
+              <strong>{billSummary.monthLabel}</strong>
+              <span>{billSummary.count.toLocaleString('ar-EG')} طلب محتسب</span>
+            </div>
+            <p className="billing-invoice-card__meta">
+              عدد الطلبات المحتسبة: {billSummary.count.toLocaleString('ar-EG')}
+            </p>
+            <p className="billing-invoice-card__meta">
+              سعر الطلب: {formatPrice(billSummary.price, currency)}
+            </p>
+            <p className="billing-invoice-card__total">
+              المبلغ المستحق: {formatPrice(billSummary.total, currency)}
+            </p>
+            <p className="billing-invoice-card__status">{statusLabel(billSummary.status)}</p>
+          </section>
+        )}
+
+        {step === 'methods' && mandatory && !billing?.paymentPending && (
           <section className="billing-card billing-card--compact">
             <h3>طرق الدفع المتاحة</h3>
+            <p className="billing-instructions">اختر طريقة الدفع وأرسل إثبات التحويل أو بيانات الدفع.</p>
             <div className="billing-methods billing-methods--compact">
               {methods.map((method) => (
                 <button
@@ -252,7 +289,7 @@ export default function CompanyBilling() {
           </section>
         )}
 
-        {step === 'pay' && selectedMethod && (
+        {step === 'pay' && selectedMethod && mandatory && (
           <section className="billing-card billing-card--compact">
             <h3>إرسال الدفع — {selectedMethod.label}</h3>
             <div className="billing-mode-toggle">
@@ -292,18 +329,50 @@ export default function CompanyBilling() {
           <section className="billing-card billing-card--pending billing-card--compact">
             <h3>الدفع قيد المراجعة</h3>
             <p>تم استلام بيانات الدفع. يمكنك متابعة العمل — سنُعلمك عند الاعتماد.</p>
-            <Link to="/" className="billing-secondary-btn">العودة للرئيسية</Link>
+            {!mandatory && (
+              <Link to="/" className="billing-secondary-btn">العودة للرئيسية</Link>
+            )}
           </section>
         )}
 
-        {!billing?.needsPayment && !billing?.paymentPending && !billing?.paymentRejected && (
+        {!mandatory && !billing?.paymentPending && (
           <section className="billing-card billing-card--ok billing-card--compact">
             <p>لا توجد فاتورة مستحقة. دورة {billing?.currentMonthLabel} قيد العد.</p>
           </section>
         )}
+
+        {showSimulationControls && (
+          <section className="billing-card billing-card--simulation billing-card--compact">
+            <h3>أدوات التطوير — محاكاة الفوترة</h3>
+            <p className="billing-instructions">
+              هذه الأدوات للاختبار فقط ولا تغيّر بيانات الفوترة الحقيقية.
+            </p>
+            {billing?.simulationActive && (
+              <p className="billing-simulation-active">المحاكاة نشطة حالياً</p>
+            )}
+            <button
+              type="button"
+              className="billing-secondary-btn"
+              disabled={simulating || billing?.simulationActive}
+              onClick={handleStartSimulation}
+            >
+              {simulating ? 'جاري البدء...' : 'محاكاة بداية شهر جديد'}
+            </button>
+            {billing?.simulationActive && (
+              <button
+                type="button"
+                className="billing-danger-btn"
+                disabled={resettingSim}
+                onClick={handleResetSimulation}
+              >
+                {resettingSim ? 'جاري الحذف...' : 'حذف المحاكاة وإعادة الحالة'}
+              </button>
+            )}
+          </section>
+        )}
       </div>
 
-      <BottomNav />
+      {!mandatory && <BottomNav />}
     </div>
   );
 }

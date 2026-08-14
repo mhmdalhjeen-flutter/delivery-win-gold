@@ -5,6 +5,13 @@ import api from '../api/axios';
 import { queryKeys } from '../lib/queryClient';
 import { isDeliveryNotificationType } from '../utils/deliveryPushConfig';
 
+const BILLING_PUSH_TYPES = new Set([
+  'delivery_billing_required',
+  'delivery_billing_submitted',
+  'delivery_billing_verified',
+  'delivery_billing_rejected',
+  'delivery_billing_exempted',
+]);
 const STORAGE_KEY = 'deliverySeenNotifIds';
 const ONLINE_POLL_MS = 20_000;
 const OFFLINE_POLL_MS = 60_000;
@@ -59,6 +66,7 @@ export default function NotificationListener() {
     let hasImportant = false;
     let hasChat = false;
     let hasDelivery = false;
+    let hasBilling = false;
 
     for (const n of list) {
       if (seenRef.current.has(n._id)) continue;
@@ -68,6 +76,7 @@ export default function NotificationListener() {
       hasImportant = true;
       showToast(n.title, n.body);
 
+      if (BILLING_PUSH_TYPES.has(n.type)) hasBilling = true;
       if (n.type === 'chat_message') hasChat = true;
       if (n.type?.startsWith('delivery_')) hasDelivery = true;
     }
@@ -76,6 +85,10 @@ export default function NotificationListener() {
       saveSeenIds(seenRef.current);
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications });
       queryClient.invalidateQueries({ queryKey: queryKeys.notificationCount });
+    }
+
+    if (hasBilling) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.companyBilling });
     }
 
     if (hasChat) {

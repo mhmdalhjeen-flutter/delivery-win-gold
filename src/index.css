@@ -2859,10 +2859,83 @@ button.settings-link--pwa-unavailable .settings-link__text small {
   color: #991b1b;
 }
 
-.billing-loading {
+.billing-loading,
+.billing-access-loading {
   display: grid;
   place-items: center;
   min-height: 40vh;
+}
+
+.billing-pending-banner {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  width: 100%;
+  padding: 0.65rem 1rem;
+  text-align: center;
+  background: #dbeafe;
+  color: #1e3a8a;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.billing-alert {
+  padding: 1rem;
+  border-radius: 14px;
+  border: 1px solid transparent;
+}
+
+.billing-alert--new-month {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e3a8a;
+}
+
+.billing-alert--new-month h2,
+.billing-alert--rejected h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.billing-alert--rejected {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.billing-instructions {
+  margin: 0 0 0.75rem;
+  color: var(--muted, #64748b);
+  font-size: 0.85rem;
+}
+
+.billing-invoice-card__label {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  color: var(--muted, #64748b);
+}
+
+.billing-card--simulation {
+  border: 1px dashed #cbd5e1;
+  background: #f8fafc;
+}
+
+.billing-simulation-active {
+  margin: 0.5rem 0;
+  color: #92400e;
+  font-weight: 600;
+}
+
+.billing-danger-btn {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #fff;
+  color: #b91c1c;
+  font-weight: 600;
 }
 
 .billing-rejected-gate {
