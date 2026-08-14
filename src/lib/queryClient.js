@@ -74,6 +74,8 @@ export const queryKeys = {
 
   companyBilling: ['delivery', 'company', 'billing'],
 
+  pendingHandovers: ['delivery', 'company', 'pending-handovers'],
+
   billingPaymentMethods: ['delivery', 'company', 'billing', 'payment-methods'],
 
 };

@@ -125,6 +125,18 @@ export default function Dashboard() {
 
         <StatCard
 
+          label="لم يُسلَّم للزبون"
+
+          value={isLoading ? '…' : data?.pendingCustomerDelivery}
+
+          tone="red"
+
+          onClick={() => navigate('/pending-handovers')}
+
+        />
+
+        <StatCard
+
           label="تم التسليم"
 
           value={isLoading ? '…' : data?.delivered}
@@ -178,6 +190,12 @@ export default function Dashboard() {
         <button type="button" className="btn-secondary btn-primary--block" onClick={() => navigate('/assigned-orders')}>
 
           الطلبات المعيّنة لسائق
+
+        </button>
+
+        <button type="button" className="btn-secondary btn-primary--block" onClick={() => navigate('/pending-handovers')}>
+
+          طلبات لم تُسلَّم للزبون
 
         </button>
 

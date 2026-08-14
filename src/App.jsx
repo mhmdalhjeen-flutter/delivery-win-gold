@@ -23,6 +23,7 @@ import DriverDeliveryDetail from './pages/driver/DriverDeliveryDetail';
 import DriverHistory from './pages/driver/DriverHistory';
 import DriverRegistrationPassword from './pages/DriverRegistrationPassword';
 import DeliveryProofs from './pages/DeliveryProofs';
+import PendingHandovers from './pages/PendingHandovers';
 import CompanyBilling from './pages/CompanyBilling';
 
 function AppRoutes() {
@@ -47,6 +48,7 @@ function AppRoutes() {
       <Route path="/chat/:userId" element={<CompanyProtectedRoute><Chat /></CompanyProtectedRoute>} />
       <Route path="/chats" element={<CompanyProtectedRoute><Chats /></CompanyProtectedRoute>} />
       <Route path="/settings" element={<CompanyProtectedRoute><Settings /></CompanyProtectedRoute>} />
+      <Route path="/pending-handovers" element={<CompanyProtectedRoute><PendingHandovers /></CompanyProtectedRoute>} />
       <Route path="/settings/billing" element={<CompanyProtectedRoute><CompanyBilling /></CompanyProtectedRoute>} />
       <Route path="/settings/company" element={<CompanyProtectedRoute><CompanyInfo /></CompanyProtectedRoute>} />
       <Route path="/settings/pricing" element={<CompanyProtectedRoute><Pricing /></CompanyProtectedRoute>} />
