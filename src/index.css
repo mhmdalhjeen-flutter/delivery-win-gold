@@ -939,6 +939,58 @@ a {
   margin-bottom: 10px;
 }
 
+.login-rate-limit {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.login-rate-limit__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #78350f;
+}
+
+.login-rate-limit__text {
+  margin: 6px 0 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.5;
+  color: #92400e;
+}
+
+.login-rate-limit__label {
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.login-rate-limit__timer {
+  margin: 4px 0 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #78350f;
+}
+
+.login-rate-limit-ready {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
 /* Utilities */
 .muted-center {
   text-align: center;

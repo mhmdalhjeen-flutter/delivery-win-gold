@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Building2, Car, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../lib/apiUrl';
+import { useLoginRateLimitCooldown } from '../hooks/useLoginRateLimitCooldown';
+import LoginRateLimitBanner from '../components/LoginRateLimitBanner';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -16,6 +18,15 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const loginInFlight = useRef(false);
+  const {
+    isRateLimited,
+    formattedRemaining,
+    showRetryReady,
+    startFromError,
+    dismissRetryReady,
+  } = useLoginRateLimitCooldown();
+  const busy = loading || isRateLimited;
 
   useEffect(() => {
     setError('');
@@ -54,6 +65,10 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    if (isRateLimited || loginInFlight.current) return;
+
+    dismissRetryReady();
+    loginInFlight.current = true;
     setLoading(true);
     setError('');
     try {
@@ -64,12 +79,17 @@ export default function Login() {
       });
       afterLogin(data);
     } catch (err) {
+      if (err.response?.status === 429) {
+        startFromError(err);
+        return;
+      }
       if (err.response?.data?.code === 'PORTAL_NOT_ACTIVATED') {
         setError('الحساب لم يُفعّل بعد — استخدم شاشة التفعيل');
       } else {
         setError(err.response?.data?.message || 'تعذّر تسجيل الدخول');
       }
     } finally {
+      loginInFlight.current = false;
       setLoading(false);
     }
   };
@@ -109,15 +129,25 @@ export default function Login() {
 
         {isCompany ? (
           <form onSubmit={isActivate ? handleActivate : handleLogin} className="login-form">
+            <LoginRateLimitBanner
+              isRateLimited={isRateLimited}
+              formattedRemaining={formattedRemaining}
+              showRetryReady={showRetryReady && !isActivate}
+            />
+
             <label>
               <span>رقم الهاتف</span>
               <input
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  dismissRetryReady();
+                }}
                 required
                 autoComplete="tel"
                 dir="ltr"
                 inputMode="tel"
+                disabled={!isActivate && busy}
               />
             </label>
 
@@ -160,9 +190,13 @@ export default function Login() {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      dismissRetryReady();
+                    }}
                     required
                     autoComplete="current-password"
+                    disabled={busy}
                   />
                   <button type="button" className="login-password-field__toggle" onClick={() => setShowPassword((v) => !v)}>
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -171,23 +205,41 @@ export default function Login() {
               </label>
             )}
 
-            {error && <p className="form-error">{error}</p>}
+            {error && !isRateLimited && <p className="form-error">{error}</p>}
 
-            <button type="submit" className="btn-primary btn-primary--block" disabled={loading}>
+            <button
+              type="submit"
+              className="btn-primary btn-primary--block"
+              disabled={isActivate ? loading : busy}
+            >
               {loading ? <Loader2 size={18} className="spin" /> : null}
-              {isActivate ? 'تفعيل الحساب' : 'دخول'}
+              {isActivate
+                ? 'تفعيل الحساب'
+                : isRateLimited
+                  ? `انتظر ${formattedRemaining}`
+                  : 'دخول'}
             </button>
           </form>
         ) : (
           <form onSubmit={handleLogin} className="login-form">
+            <LoginRateLimitBanner
+              isRateLimited={isRateLimited}
+              formattedRemaining={formattedRemaining}
+              showRetryReady={showRetryReady}
+            />
+
             <label>
               <span>رقم الهاتف</span>
               <input
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  dismissRetryReady();
+                }}
                 required
                 dir="ltr"
                 inputMode="tel"
+                disabled={busy}
               />
             </label>
             <label>
@@ -196,19 +248,23 @@ export default function Login() {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    dismissRetryReady();
+                  }}
                   required
                   autoComplete="current-password"
+                  disabled={busy}
                 />
                 <button type="button" className="login-password-field__toggle" onClick={() => setShowPassword((v) => !v)}>
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </label>
-            {error && <p className="form-error">{error}</p>}
-            <button type="submit" className="btn-primary btn-primary--block" disabled={loading}>
+            {error && !isRateLimited && <p className="form-error">{error}</p>}
+            <button type="submit" className="btn-primary btn-primary--block" disabled={busy}>
               {loading ? <Loader2 size={18} className="spin" /> : null}
-              دخول
+              {isRateLimited ? `انتظر ${formattedRemaining}` : 'دخول'}
             </button>
             <Link to="/register-driver" className="btn-secondary btn-primary--block login-register-link">
               تسجيل سائق جديد
